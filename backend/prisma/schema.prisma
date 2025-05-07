@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String      @id @default(uuid())
+  name        String
+  number      String?
+  email       String?     @unique
+  role        String
+  permissions Permission?
+  createdAt   DateTime    @default(now()) @db.Timestamp(6)
+}
+
+model Permission {
+  id                   String  @id @default(uuid())
+  userId               String  @unique
+  user                 User    @relation(fields: [userId], references: [id])
+  manageRaffles        Boolean
+  manageSellers        Boolean
+  manageTickets        Boolean
+  manageChatbot        Boolean
+  managePaymentMethods Boolean
+  manageCustomers      Boolean
+  manageOrders         Boolean
+}
