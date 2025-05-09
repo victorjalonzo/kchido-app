@@ -1,11 +1,22 @@
-import {Controller, Get, Param, Res, HttpStatus} from "@nestjs/common"
+import {Controller, Get, Param, Res, HttpStatus, Query} from "@nestjs/common"
 import { UserService } from "../application/user.service.js"
 import { Response } from 'express';
-import { UserNotFoundException } from "../domain/user.exceptions.js";
+import { handleUserResponseException } from "./user.util.js";
 
 @Controller("api/v1/users")
 export class UserController {
     constructor(private readonly userService: UserService){}
+
+    @Get()
+    async findMany(@Query('role') role: string, @Res() res: Response) {
+        try {
+            const data = await this.userService.findMany(role)
+            return res.status(HttpStatus.OK).json(data)
+        }
+        catch(e) {
+            return handleUserResponseException(res, e)
+        }
+    }
 
     @Get(':id')
     async findOne(@Param('id') id: string, @Res() res: Response) {
@@ -16,10 +27,7 @@ export class UserController {
             return res.status(HttpStatus.OK).json(data)
         }
         catch(e) {
-            if (e instanceof UserNotFoundException) {
-                return res.status(HttpStatus.NOT_FOUND).json({message: e.message})
-            }
-            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({message: String(e)})
+            return handleUserResponseException(res, e)
         }
     }
 }
