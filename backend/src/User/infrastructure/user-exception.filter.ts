@@ -1,7 +1,7 @@
 import {ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus} from '@nestjs/common';
 import { Response } from 'express';
-import { UserNotFoundException } from '../domain/user.exceptions.js';
-import { InternalServerError } from '../../Shared/shared.exception.js';
+import { UserNotFoundException } from '../domain/user.exceptions';
+import { InternalServerError } from '../../Shared/shared.exception';
   
 @Catch()
 export class UserExceptionFilter implements ExceptionFilter {
