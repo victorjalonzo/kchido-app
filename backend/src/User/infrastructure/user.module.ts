@@ -1,7 +1,7 @@
 import { Module} from "@nestjs/common"
-import { UserService } from "../application/user.service.js"
-import { UserController } from "./user.controller.js"
-import { SharedModule } from "../../Shared/shared.module.js"
+import { UserService } from "../application/user.service"
+import { UserController } from "./user.controller"
+import { SharedModule } from "../../Shared/shared.module"
 
 @Module({
     imports: [SharedModule],
