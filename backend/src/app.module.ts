@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from './User/infrastructure/user.module.js';
-import { PrismaModule } from './Database/prisma.module.js';
+import { UserModule } from './User/infrastructure/user.module';
+import { SharedModule } from './Shared/shared.module';
+import { RaffleModule } from './Raffle/infrastructure/raffle.module';
+import { PermissionModule } from './Permission/infrastructure/permission.module';
 
 @Module({
-  imports: [UserModule, PrismaModule],
+  imports: [
+    SharedModule, 
+    UserModule,
+    PermissionModule,
+    RaffleModule
+  ],
 })
 export class AppModule {}
