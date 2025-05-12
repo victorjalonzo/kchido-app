@@ -2,10 +2,10 @@ import { Module} from "@nestjs/common"
 import { UserService } from "../application/user.service"
 import { UserController } from "./user.controller"
 import { SharedModule } from "../../Shared/shared.module"
-import { PermissionService } from "src/Permission/application/permission.service"
+import { PermissionModule } from "src/Permission/infrastructure/permission.module"
 
 @Module({
-    imports: [SharedModule, PermissionService],
+    imports: [SharedModule, PermissionModule],
     providers: [UserService],
     controllers: [UserController]
 })
