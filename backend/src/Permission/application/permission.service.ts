@@ -9,7 +9,7 @@ import { PermissionNotFound } from "../domain/permission.exception";
 
 @Injectable()
 export class PermissionService {
-    model: Model = Model.Permissions
+    model: Model = Model.PERMISSIONS
 
     constructor (private readonly repository: SharedRepository<Permissions>){}
 

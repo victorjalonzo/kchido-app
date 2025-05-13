@@ -1,6 +1,8 @@
 export enum Model {
     USERS = 'users',
-    Permissions = 'permissions',
+    PERMISSIONS = 'permissions',
     RAFFLES = 'raffles',
-    ORDERS = 'orders'
+    ORDERS = 'orders',
+    TICKETRESERVATIONS = 'ticketreservations',
+    TICKETS = 'tickets'
 }
