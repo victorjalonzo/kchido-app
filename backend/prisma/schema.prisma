@@ -7,25 +7,107 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          String      @id @default(uuid())
+model Users {
+  id          String       @id @default(uuid())
   name        String
-  number      String?
-  email       String?     @unique
   role        String
-  permissions Permission?
-  createdAt   DateTime    @default(now()) @db.Timestamp(6)
+  number      String?
+  email       String?      @unique
+  permissions Permissions?
+  createdAt   DateTime     @default(now()) @db.Timestamp(6)
+
+  raffle             Raffles[]
+  tickets            Tickets[]
+  ticketReservations TicketReservation[]
+  orders             Orders[]
 }
 
-model Permission {
-  id                   String  @id @default(uuid())
-  userId               String  @unique
-  user                 User    @relation(fields: [userId], references: [id])
-  manageRaffles        Boolean
-  manageSellers        Boolean
-  manageTickets        Boolean
-  manageChatbot        Boolean
-  managePaymentMethods Boolean
-  manageCustomers      Boolean
-  manageOrders         Boolean
+model Permissions {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  manageRaffles        Boolean? @default(false)
+  manageSellers        Boolean? @default(false)
+  manageTickets        Boolean? @default(false)
+  manageChatbot        Boolean? @default(false)
+  managePaymentMethods Boolean? @default(false)
+  manageCustomers      Boolean? @default(false)
+  manageOrders         Boolean? @default(false)
+
+  user Users @relation(fields: [userId], references: [id])
+}
+
+model Raffles {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  image           String?
+  pricePeerTicket Int
+  initialAmount   Int
+  totalAmount     Int      @default(0)
+  subscribers     Int      @default(0)
+  status          String
+  winnerNumbers   String?
+  createdBy       String
+  createdAt       DateTime @default(now()) @db.Timestamp(6)
+  endsAt          DateTime
+
+  user               Users               @relation(fields: [createdBy], references: [id])
+  ticketReservations TicketReservation[]
+  tickets            Tickets[]
+}
+
+model Orders {
+  id            String   @id @default(uuid())
+  userId        String
+  total         Int
+  status        String
+  paymentMethod String
+  transactionId String 
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+
+  user               Users               @relation(fields: [userId], references: [id])
+  ticketReservations TicketReservation[]
+  tickets            Tickets[]
+}
+
+model TicketReservation {
+  id        String @id @default(uuid())
+  serial    String
+  userId    String
+  raffleId  String
+  orderId   String
+  expiresAt String
+
+  user    Users   @relation(fields: [userId], references: [id])
+  raffles Raffles @relation(fields: [raffleId], references: [id])
+  orders  Orders  @relation(fields: [orderId], references: [id])
+}
+
+model Tickets {
+  id       String   @id @default(uuid())
+  serial   String   @unique
+  price    Int
+  userId   String
+  raffleId String
+  orderId  String
+  creation DateTime
+
+  user   Users   @relation(fields: [userId], references: [id])
+  raffle Raffles @relation(fields: [raffleId], references: [id])
+  order  Orders  @relation(fields: [orderId], references: [id])
+}
+
+model PaymentProviders {
+  id            String  @id @default(uuid())
+  name          String
+  publicApiKey  String
+  secretApiKey  String
+  webhookId     String?
+  webhookSecret String?
+}
+
+model Chatbots {
+  id    String @id
+  name  String
+  image Bytes
 }
