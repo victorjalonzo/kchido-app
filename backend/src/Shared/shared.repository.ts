@@ -12,7 +12,7 @@ export class SharedRepository<T> {
         return <T>await this.prismClient[model].create({data: data})
     }
 
-    findOne = async (model: Model, filters: Record<string, any>): Promise<T | null> => {
+    findOne = async (model: Model, filters?: Record<string, any>): Promise<T | null> => {
         // @ts-ignore
         return <T | null>await this.prismClient[model].findFirst({where: filters})
     }
