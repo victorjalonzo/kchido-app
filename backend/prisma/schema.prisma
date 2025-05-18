@@ -10,9 +10,11 @@ datasource db {
 model Users {
   id          String       @id @default(uuid())
   name        String
-  role        String
-  number      String?
   email       String?      @unique
+  password    String?
+  number      String?
+  role        String
+  avatar      String?
   permissions Permissions?
   createdAt   DateTime     @default(now()) @db.Timestamp(6)
 
