@@ -1,27 +1,27 @@
-import { IsDate, IsDateString, IsIn, IsNumber, IsString } from "class-validator"
+import { IsDate, IsDateString, IsIn, IsNumber, IsOptional, IsString } from "class-validator"
 import { RaffleStatus } from "../domain/raffle.entity"
 
 export class CreateRaffleDTO {
     @IsString()
-    name!: string
+    name: string
 
-    @IsString()
+    @IsOptional() @IsString()
     image?: String
 
-    @IsString()
+    @IsOptional() @IsString()
     description?: string
 
     @IsNumber()
-    pricePeerTicket!: number
+    pricePeerTicket: number
 
     @IsNumber()
     initialAmount!: number
 
-    @IsIn(['active', 'inactive'])
-    status!: Omit<RaffleStatus, 'finalized'>
+    @IsIn(['public', 'inactive'])
+    status: Omit<RaffleStatus, 'finalized'>
 
-    @IsString()
-    createdBy: string
+    @IsOptional() @IsString()
+    createdBy?: string
 
     @IsDateString()
     endsAt: Date
