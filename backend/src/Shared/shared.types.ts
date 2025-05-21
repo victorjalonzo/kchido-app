@@ -3,6 +3,7 @@ export enum Model {
     PERMISSIONS = 'permissions',
     RAFFLES = 'raffles',
     ORDERS = 'orders',
-    TICKETRESERVATIONS = 'ticketreservations',
-    TICKETS = 'tickets'
+    TICKET_RESERVATIONS = 'ticketreservations',
+    TICKETS = 'tickets',
+    WINNER_NUMBER = 'winnernumbers'
 }
