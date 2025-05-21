@@ -48,14 +48,23 @@ model Raffles {
   totalAmount     Int      @default(0)
   subscribers     Int      @default(0)
   status          String
-  winnerNumbers   String?
   createdBy       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
 
-  user               Users               @relation(fields: [createdBy], references: [id])
+  user               Users                 @relation(fields: [createdBy], references: [id])
   ticketReservations TicketReservation[]
   tickets            Tickets[]
+  winnerNumbers      RaffleWinnerNumbers[]
+}
+
+model RaffleWinnerNumbers {
+  id        String   @id @default(uuid())
+  serial    String
+  raffleId  String
+  createdAt DateTime
+
+  raffle Raffles @relation(fields: [raffleId], references: [id])
 }
 
 model Orders {
@@ -64,7 +73,7 @@ model Orders {
   total         Int
   status        String
   paymentMethod String
-  transactionId String 
+  transactionId String
   createdAt     DateTime @default(now()) @db.Timestamp(6)
 
   user               Users               @relation(fields: [userId], references: [id])
