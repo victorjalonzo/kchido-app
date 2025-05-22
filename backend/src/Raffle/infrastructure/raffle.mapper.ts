@@ -7,7 +7,7 @@ export class RaffleMapper {
  
         return new Raffle({
             ...raw,
-            status
+            status,
         })
     }
 }
