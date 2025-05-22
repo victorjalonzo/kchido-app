@@ -1,6 +1,8 @@
+import { WinnerNumber } from "src/WinnerNumber/domain/winner-number.entity"
+
 export enum RaffleStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  PUBLIC = 'public',
+  PRIVATE = 'private',
   FINALIZED = 'finalized'
 }
 
@@ -14,7 +16,7 @@ export interface Props {
   totalAmount: number,
   subscribers: number,
   status: RaffleStatus,
-  winnerNumbers: string | null,
+  winnerNumbers?: WinnerNumber[],
   createdBy: string,
   createdAt: Date,
   endsAt: Date,
@@ -30,7 +32,7 @@ export class Raffle implements Props {
   totalAmount: number
   subscribers: number
   status: RaffleStatus
-  winnerNumbers: string | null
+  winnerNumbers: WinnerNumber[]
   createdBy: string
   createdAt: Date
   endsAt: Date
@@ -45,7 +47,7 @@ export class Raffle implements Props {
     this.totalAmount = props.totalAmount
     this.subscribers = props.subscribers
     this.status = props.status
-    this.winnerNumbers = props.winnerNumbers
+    this.winnerNumbers = props.winnerNumbers ?? []
     this.createdBy = props.createdBy
     this.createdAt = props.createdAt
     this.endsAt = props.endsAt
