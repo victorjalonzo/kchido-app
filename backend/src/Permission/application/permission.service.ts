@@ -26,6 +26,15 @@ export class PermissionService {
         })
     }
 
+    upsertByUser = async (dto: CreatePermissionDTO): Promise<Permission> => {
+        return await this.repository.findOne(this.model, { userId: dto.userId})
+        .then(async record => !record
+            ? await this.repository.create(this.model, dto)
+            : await this.repository.update(this.model, dto, { userId: dto.userId})
+        )
+        .then(record  => PermissionMapper.toDomain((record as Permissions)))
+    }
+
     updateByUser = async (dto: CreatePermissionDTO): Promise<Permission> => {
         return await this.repository.update(this.model, dto, { userId: dto.userId})
         .then(record => {
