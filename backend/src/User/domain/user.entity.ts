@@ -6,13 +6,20 @@ export enum UserType {
     OWNER = 'owner'
 }
 
+export enum UserStatus {
+    ACTIVE = 'active',
+    BANNED = 'banned'
+}
+
 interface Props {
     id: string
     name: string
     role: UserType
     number: string | null
     email: string | null
+    password: string | null
     permissions: Permission | null
+    status: UserStatus | null
     createdAt: Date
 }
 
@@ -22,7 +29,9 @@ export class User implements Props {
     role: UserType
     number: string | null
     email: string | null
+    password: string | null
     permissions: Permission | null
+    status: UserStatus | null
     createdAt: Date
 
     constructor(props: Props) {
@@ -31,7 +40,9 @@ export class User implements Props {
         this.role = props.role
         this.number = props.number
         this.email = props.email
+        this.password = props.password
         this.permissions = props.permissions
+        this.status = props.status
         this.createdAt = props.createdAt
     }
 }
