@@ -16,6 +16,7 @@ model Users {
   role        String
   avatar      String?
   permissions Permissions?
+  status String @default("active")
   createdAt   DateTime     @default(now()) @db.Timestamp(6)
 
   raffle             Raffles[]
@@ -35,7 +36,7 @@ model Permissions {
   manageCustomers      Boolean? @default(false)
   manageOrders         Boolean? @default(false)
 
-  user Users @relation(fields: [userId], references: [id])
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Raffles {
@@ -62,9 +63,9 @@ model RaffleWinnerNumbers {
   id        String   @id @default(uuid())
   serial    String
   raffleId  String
-  createdAt DateTime
+  createdAt DateTime @default(now()) @db.Timestamp(6)
 
-  raffle Raffles @relation(fields: [raffleId], references: [id])
+  raffle Raffles @relation(fields: [raffleId], references: [id], onDelete: Cascade)
 }
 
 model Orders {
