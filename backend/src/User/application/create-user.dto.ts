@@ -1,4 +1,4 @@
-import { IsObject, IsString } from "class-validator";
+import { IsObject, IsOptional, IsString } from "class-validator";
 import { CreatePermissionDTO } from "src/Permission/application/create-permission.dto";
 
 export class CreateUserDTO {
@@ -8,12 +8,15 @@ export class CreateUserDTO {
     @IsString()
     role: string
 
-    @IsString()
+    @IsOptional() @IsString()
     number?: string
 
-    @IsString()
+    @IsOptional() @IsString()
     email?: string
 
-    @IsObject()
+    @IsOptional() @IsString()
+    password?: string
+
+    @IsOptional() @IsObject()
     permissions?: CreatePermissionDTO
 }
