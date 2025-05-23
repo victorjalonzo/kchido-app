@@ -6,6 +6,7 @@ import { PermissionModule } from "src/Permission/infrastructure/permission.modul
 
 @Module({
     imports: [SharedModule, PermissionModule],
+    exports: [UserService],
     providers: [UserService],
     controllers: [UserController]
 })
