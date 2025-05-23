@@ -7,6 +7,8 @@ import { PermissionService } from "src/Permission/application/permission.service
 import { Users } from "@prisma/client"
 import { UserMapper } from "../infrastructure/user.mapper"
 import { User } from "../domain/user.entity"
+import { UpdateUserDTO } from "./update-user.dto"
+import { PermissionNotFound } from "src/Permission/domain/permission.exception"
 
 @Injectable()
 export class UserService {
@@ -32,6 +34,36 @@ export class UserService {
             }
 
             return user
+        })
+    }
+
+    update = async (dto: UpdateUserDTO): Promise<User> => {
+        const { permissions: permissionDTO, ...updateUserDTO } = dto
+        const { id, ...data } = updateUserDTO
+
+        return await this.repository.update(this.model, data, { id })
+        .then( async record => {
+            if (!record) throw new UserNotFoundException()
+            const user = UserMapper.toDomain(record)
+
+            console.log(permissionDTO)
+
+            if (permissionDTO) {
+                permissionDTO.userId = user.id
+
+                await this.permissionService.upsertByUser(permissionDTO)
+                .then(permission => user.permissions = permission)
+            }
+            return user
+        })
+
+    }
+
+    findByEmail = async (email: string): Promise<User> => {
+        return await this.repository.findOne(this.model, { email })
+        .then( record => {
+            if (!record) throw new UserNotFoundException()
+            return UserMapper.toDomain(record)
         })
     }
 
