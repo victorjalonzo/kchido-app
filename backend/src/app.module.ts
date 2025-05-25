@@ -5,6 +5,7 @@ import { RaffleModule } from './Raffle/infrastructure/raffle.module';
 import { PermissionModule } from './Permission/infrastructure/permission.module';
 import { AuthModule } from './Auth/infrastructure/auth.module';
 import { TicketModule } from './Ticket/infrastructure/ticket.module';
+import { OrderModule } from './Order/infrastructure/order.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { TicketModule } from './Ticket/infrastructure/ticket.module';
     PermissionModule,
     RaffleModule,
     AuthModule,
+    OrderModule,
     TicketModule
   ],
 })
