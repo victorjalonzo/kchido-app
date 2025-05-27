@@ -1,4 +1,6 @@
+import { Raffle } from "src/Raffle/domain/raffle.entity"
 import { Ticket } from "src/Ticket/domain/ticket.entity"
+import { User } from "src/User/domain/user.entity"
 
 export enum OrderStatus {
     PENDING = 'pending',
@@ -11,9 +13,14 @@ interface Props {
     total: number
     status: OrderStatus
     paymentMethod: string
-    transactionId: string 
-    tickets: Ticket[]
+    transactionId: string
+    quantity: number
     createdAt: Date
+    
+    user?: User
+    raffle?: Raffle
+    tickets?: Ticket[]
+
 }
 
 export class Order implements Props {
@@ -23,8 +30,12 @@ export class Order implements Props {
     status: OrderStatus
     paymentMethod: string
     transactionId: string 
-    tickets: Ticket[]
+    quantity: number
     createdAt: Date
+
+    user?: User
+    tickets?: Ticket[]
+    raffle?: Raffle
 
     constructor (props: Props) {
         this.id = props.id
@@ -32,7 +43,11 @@ export class Order implements Props {
         this.total = props.total
         this.status = props.status
         this.paymentMethod = props.paymentMethod
-        this.tickets = props.tickets
+        this.quantity = props.quantity
         this.createdAt = props.createdAt
+
+        if (props.tickets) this.tickets = props.tickets
+        if (props.user) this.user = props.user
+        if (props.raffle) this.raffle = props.raffle
     }
 }
