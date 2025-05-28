@@ -2,6 +2,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator fabbrica {
+  provider = "prisma-fabbrica"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -21,7 +25,7 @@ model Users {
 
   raffle             Raffles[]
   tickets            Tickets[]
-  ticketReservations TicketReservation[]
+  ticketReservations TicketReservations[]
   orders             Orders[]
 }
 
@@ -48,13 +52,15 @@ model Raffles {
   initialAmount   Int
   totalAmount     Int      @default(0)
   subscribers     Int      @default(0)
-  status          String
+  visibility      String @default("public")
+  status          String @default("ongoing")
   createdBy       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
 
   user               Users                 @relation(fields: [createdBy], references: [id])
-  ticketReservations TicketReservation[]
+  orders             Orders[]
+  ticketReservations TicketReservations[]
   tickets            Tickets[]
   winnerNumbers      RaffleWinnerNumbers[]
 }
@@ -71,18 +77,22 @@ model RaffleWinnerNumbers {
 model Orders {
   id            String   @id @default(uuid())
   userId        String
+  raffleId      String
   total         Int
+  quantity      Int
   status        String
   paymentMethod String
   transactionId String
   createdAt     DateTime @default(now()) @db.Timestamp(6)
+  purchasedAt   DateTime?
 
   user               Users               @relation(fields: [userId], references: [id])
-  ticketReservations TicketReservation[]
+  raffle             Raffles             @relation(fields: [raffleId], references: [id])
+  ticketReservations TicketReservations[]
   tickets            Tickets[]
 }
 
-model TicketReservation {
+model TicketReservations {
   id        String @id @default(uuid())
   serial    String
   userId    String
@@ -97,7 +107,7 @@ model TicketReservation {
 
 model Tickets {
   id       String   @id @default(uuid())
-  serial   String   @unique
+  serial   String   
   price    Int
   userId   String
   raffleId String
