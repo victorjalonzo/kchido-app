@@ -1,5 +1,5 @@
 import { IsArray, IsDateString, IsIn, IsNumber, IsOptional, IsString } from "class-validator"
-import { RaffleStatus } from "../domain/raffle.entity"
+import { RaffleStatus, RaffleVisibility } from "../domain/raffle.entity"
 
 export class UpdateRaffleDTO {
     @IsString()
@@ -20,8 +20,11 @@ export class UpdateRaffleDTO {
     @IsOptional() @IsNumber()
     initialAmount?: number
 
-    @IsOptional() @IsIn([RaffleStatus.PUBLIC, RaffleStatus.PRIVATE, RaffleStatus.FINALIZED])
+    @IsOptional() @IsIn([RaffleStatus.ONGOING, RaffleStatus.ENDED])
     status?: RaffleStatus
+
+    @IsOptional() @IsIn([RaffleVisibility.PUBLIC, RaffleVisibility.PRIVATE])
+    visibility: RaffleVisibility
 
     @IsOptional() @IsArray()
     winnerNumbers?: string[]
