@@ -56,11 +56,11 @@ export class RaffleService {
     }
 
     findPublicOne = async (id: string) => {
-        return await this._findOne({ id, status: RaffleStatus.PUBLIC})
+        return await this._findOne({ id, status: RaffleStatus.ONGOING})
     }
 
     findPublicMany = async () => {
-        return await this._findMany({ status: RaffleStatus.PUBLIC})
+        return await this._findMany({ status: RaffleStatus.ONGOING})
     }
 
     findOne = async (id: string): Promise<Raffle> => {
