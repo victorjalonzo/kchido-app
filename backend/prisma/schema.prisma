@@ -18,15 +18,17 @@ model Users {
   password    String?
   number      String?
   role        String
-  avatar      String?
+  image      String?
   permissions Permissions?
-  status String @default("active")
+  status      String       @default("active")
   createdAt   DateTime     @default(now()) @db.Timestamp(6)
 
   raffle             Raffles[]
   tickets            Tickets[]
   ticketReservations TicketReservations[]
-  orders             Orders[]
+
+  orders         Orders[] @relation("OrderUser")
+  assistedOrders Orders[] @relation("OrderAssistant")
 }
 
 model Permissions {
@@ -50,10 +52,10 @@ model Raffles {
   image           String?
   pricePeerTicket Int
   initialAmount   Int
-  totalAmount     Int      @default(0)
+  accumulated     Int      @default(0)
   subscribers     Int      @default(0)
-  visibility      String @default("public")
-  status          String @default("ongoing")
+  visibility      String   @default("public")
+  status          String   @default("ongoing")
   createdBy       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
@@ -75,19 +77,21 @@ model RaffleWinnerNumbers {
 }
 
 model Orders {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   userId        String
   raffleId      String
   total         Int
   quantity      Int
   status        String
-  paymentMethod String
-  transactionId String
-  createdAt     DateTime @default(now()) @db.Timestamp(6)
+  paymentMethod String?
+  transactionId String?
+  assistedBy    String
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
   purchasedAt   DateTime?
 
-  user               Users               @relation(fields: [userId], references: [id])
-  raffle             Raffles             @relation(fields: [raffleId], references: [id])
+  user               Users                @relation("OrderUser", fields: [userId], references: [id])
+  assistant          Users                @relation("OrderAssistant", fields: [assistedBy], references: [id])
+  raffle             Raffles              @relation(fields: [raffleId], references: [id])
   ticketReservations TicketReservations[]
   tickets            Tickets[]
 }
@@ -100,19 +104,19 @@ model TicketReservations {
   orderId   String
   expiresAt String
 
-  user    Users   @relation(fields: [userId], references: [id])
-  raffles Raffles @relation(fields: [raffleId], references: [id])
-  orders  Orders  @relation(fields: [orderId], references: [id])
+  user   Users   @relation(fields: [userId], references: [id])
+  raffle Raffles @relation(fields: [raffleId], references: [id])
+  order  Orders  @relation(fields: [orderId], references: [id])
 }
 
 model Tickets {
   id       String   @id @default(uuid())
-  serial   String   
+  serial   String
   price    Int
   userId   String
   raffleId String
   orderId  String
-  creation DateTime
+  createdAt DateTime @default(now()) @db.Timestamp(6)
 
   user   Users   @relation(fields: [userId], references: [id])
   raffle Raffles @relation(fields: [raffleId], references: [id])
