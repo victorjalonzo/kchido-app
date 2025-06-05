@@ -12,8 +12,8 @@ interface Props {
     userId: string
     total: number
     status: OrderStatus
-    paymentMethod: string
-    transactionId: string
+    paymentMethod: string | null
+    transactionId:  string | null
     quantity: number
     createdAt: Date
     
@@ -28,8 +28,8 @@ export class Order implements Props {
     userId: string
     total: number
     status: OrderStatus
-    paymentMethod: string
-    transactionId: string 
+    paymentMethod:  string | null
+    transactionId:  string | null 
     quantity: number
     createdAt: Date
 
