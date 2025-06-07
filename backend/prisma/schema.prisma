@@ -126,10 +126,8 @@ model Tickets {
 model PaymentProviders {
   id            String  @id @default(uuid())
   name          String
-  publicApiKey  String
-  secretApiKey  String
-  webhookId     String?
-  webhookSecret String?
+  clientId  String
+  clientSecret  String
 }
 
 model Chatbots {
