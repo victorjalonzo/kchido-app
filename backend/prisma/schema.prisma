@@ -102,7 +102,7 @@ model TicketReservations {
   userId    String
   raffleId  String
   orderId   String
-  expiresAt String
+  expiresAt DateTime
 
   user   Users   @relation(fields: [userId], references: [id])
   raffle Raffles @relation(fields: [raffleId], references: [id])
