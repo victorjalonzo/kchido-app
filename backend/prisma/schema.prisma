@@ -29,6 +29,7 @@ model Users {
 
   orders         Orders[] @relation("OrderUser")
   assistedOrders Orders[] @relation("OrderAssistant")
+  tasks Tasks[]
 }
 
 model Permissions {
@@ -65,6 +66,7 @@ model Raffles {
   ticketReservations TicketReservations[]
   tickets            Tickets[]
   winnerNumbers      RaffleWinnerNumbers[]
+  tasks Tasks[]
 }
 
 model RaffleWinnerNumbers {
@@ -94,6 +96,7 @@ model Orders {
   raffle             Raffles              @relation(fields: [raffleId], references: [id])
   ticketReservations TicketReservations[]
   tickets            Tickets[]
+  tasks Tasks[]
 }
 
 model TicketReservations {
@@ -130,8 +133,24 @@ model PaymentProviders {
   clientSecret  String
 }
 
-model Chatbots {
-  id    String @id
-  name  String
-  image Bytes
+model ChatbotConfigurations {
+  id String @id
+  active Boolean @default(true)
+}
+
+model Tasks {
+  id String @id() @default(uuid())
+  type String
+  status String
+  description String?
+  retries Int @default(0)
+  orderId String?
+  raffleId String?
+  customerId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  customer Users? @relation(fields: [customerId], references: [id])
+  raffle Raffles? @relation(fields: [raffleId], references: [id])
+  order Orders?  @relation(fields: [orderId], references: [id])
 }
