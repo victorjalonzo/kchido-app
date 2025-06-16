@@ -6,7 +6,7 @@ export class CreateRaffleDTO {
     name: string
 
     @IsOptional() @IsString()
-    image?: String
+    image?: string
 
     @IsOptional() @IsString()
     description?: string
