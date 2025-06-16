@@ -9,7 +9,7 @@ export class UpdateRaffleDTO {
     name?: string
 
     @IsOptional() @IsString()
-    image?: String
+    image?: string
 
     @IsOptional() @IsString()
     description?: string
@@ -24,7 +24,7 @@ export class UpdateRaffleDTO {
     status?: RaffleStatus
 
     @IsOptional() @IsIn([RaffleVisibility.PUBLIC, RaffleVisibility.PRIVATE])
-    visibility: RaffleVisibility
+    visibility?: RaffleVisibility
 
     @IsOptional() @IsArray()
     winnerNumbers?: string[]
