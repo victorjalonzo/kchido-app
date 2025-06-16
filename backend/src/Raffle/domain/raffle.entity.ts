@@ -1,3 +1,5 @@
+import { Order } from "src/Order/domain/order.entity"
+import { Ticket } from "src/Ticket/domain/ticket.entity"
 import { WinnerNumber } from "src/WinnerNumber/domain/winner-number.entity"
 
 export enum RaffleVisibility {
@@ -17,7 +19,7 @@ export interface Props {
   description: string | null
   pricePeerTicket: number,
   initialAmount: number,
-  totalAmount: number,
+  accumulated: number,
   subscribers: number,
   status: RaffleStatus,
   visibility: RaffleVisibility,
@@ -25,6 +27,9 @@ export interface Props {
   createdBy: string,
   createdAt: Date,
   endsAt: Date,
+
+  tickets?: Ticket[]
+  orders?: Order[]
 }
 
 export class Raffle implements Props {
@@ -34,7 +39,7 @@ export class Raffle implements Props {
   image: string | null
   pricePeerTicket: number
   initialAmount: number
-  totalAmount: number
+  accumulated: number
   subscribers: number
   status: RaffleStatus
   visibility: RaffleVisibility
@@ -43,6 +48,9 @@ export class Raffle implements Props {
   createdAt: Date
   endsAt: Date
 
+  tickets?: Ticket[]
+  orders?: Order[]
+
   constructor (props: Props){
     this.id = props.id
     this.name = props.name,
@@ -50,7 +58,7 @@ export class Raffle implements Props {
     this.image = props.image
     this.pricePeerTicket = props.pricePeerTicket
     this.initialAmount = props.initialAmount
-    this.totalAmount = props.totalAmount
+    this.accumulated = props.accumulated
     this.subscribers = props.subscribers
     this.status = props.status
     this.visibility = props.visibility
@@ -58,6 +66,9 @@ export class Raffle implements Props {
     this.createdBy = props.createdBy
     this.createdAt = props.createdAt
     this.endsAt = props.endsAt
+
+    this.tickets = props.tickets ?? []
+    this.orders = props.orders ?? []
   }
 }
   
