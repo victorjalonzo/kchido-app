@@ -119,6 +119,7 @@ model Tickets {
   userId   String
   raffleId String
   orderId  String
+  receiptPath String? 
   createdAt DateTime @default(now()) @db.Timestamp(6)
 
   user   Users   @relation(fields: [userId], references: [id])
