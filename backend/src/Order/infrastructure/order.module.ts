@@ -5,10 +5,12 @@ import { SharedModule } from "src/Shared/shared.module";
 import { TicketModule } from "src/Ticket/infrastructure/ticket.module";
 import { TicketReservationModule } from "src/TicketReservation/infrastructure/ticket-reservation.module";
 import { RaffleModule } from "src/Raffle/infrastructure/raffle.module";
+import { UserModule } from "src/User/infrastructure/user.module";
 
 @Module({
     imports: [
         SharedModule,
+        UserModule,
         RaffleModule,
         TicketModule, 
         TicketReservationModule
