@@ -16,6 +16,7 @@ import { CreateTicketReservationDTO } from "src/TicketReservation/application/cr
 import { RaffleService } from "src/Raffle/application/raffle.service";
 import { Raffle } from "src/Raffle/domain/raffle.entity";
 import { TicketReservationNotFound } from "src/TicketReservation/domain/ticket-reservation.exception";
+import { UserService } from "src/User/application/user.service";
 
 export interface IncludeOrdersRelationValues {
     user?: Users,
@@ -30,9 +31,10 @@ export class OrderService {
 
     constructor (
         private readonly repository: SharedRepository<Orders>,
+        private readonly userService: UserService,
         private readonly raffleService: RaffleService,
         private readonly ticketService: TicketService,
-        private readonly ticketReservationService: TicketReservationService
+        private readonly ticketReservationService: TicketReservationService,
     ) {}
 
     create = async (dto: CreateOrderDTO): Promise<Order> => {
@@ -141,6 +143,19 @@ export class OrderService {
             if (!record) throw new OrderNotFound()
             return OrderMapper.toDomain((record as Orders & IncludeOrdersRelationValues))
         })
+    }
+
+    findManyWithUserScope = async (userId: string, filters: FindOrderQuery,  include?: IncludeOrderQuery) => {
+        const user = await this.userService.findById(userId)
+        
+        if (user.isAdmin || user.isChatbot) {
+            return await this._findMany(filters, include)
+        }
+
+        return await  this._findMany({
+            ...filters,
+            assistedBy: user.id
+        },  include)
     }
 
     findById = async (id: string, include?: IncludeOrderQuery) => {
