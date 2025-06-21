@@ -25,14 +25,13 @@ export function useAccount () {
     })
 
     const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault()
-      setIsLoading(true)
-      
-
-      if (file) userData.image = await Base64.convert(file)
-  
       try {
+        e.preventDefault()
+        setIsLoading(true)
+        
+        if (file) userData.image = await Base64.convert(file)
         await update(userData)
+      
         toast({
           title: "Perfil actualizado",
           description: "Tu información personal se ha guardado correctamente.",
