@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/aler
 import type { Raffle } from "@/shared/lib/types"
 import { UpdateRafflePayload } from "./types/update-raffle-payload"
 import { RaffleAPI } from "./api/raffles-api"
+import { RaffleStatus } from "./types/raffle.type"
 
 interface FinalizeRaffleDialogProps {
   open: boolean
@@ -61,7 +62,7 @@ export default function FinalizeRaffleDialog({
     const payload: UpdateRafflePayload = {
       id: raffle.id,
       winnerNumbers: winnerNumbers,
-      status: 'finalized'
+      status: RaffleStatus.ENDED
     }
 
     await RaffleAPI.update(payload)
