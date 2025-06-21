@@ -28,7 +28,11 @@ export class AuthAPI {
       const user = <User>await fetchAPI(`${endpoint}/me`, {
         method: 'PATCH',
         body: JSON.stringify(payload)
-      })
+      },
+      {
+        permissions: true
+      }
+    )
 
       return user
     }
