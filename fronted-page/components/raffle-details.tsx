@@ -68,8 +68,6 @@ export default function RaffleDetails({ raffle }: { raffle: Raffle }) {
             Comprar Boletos en WhatsApp
           </Button>
         </Link>
-
-
       </div>
     </div>
   )
