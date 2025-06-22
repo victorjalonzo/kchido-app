@@ -1,7 +1,7 @@
 import { addKeyword, EVENTS } from "@builderbot/bot";
 import { AuthAPI } from "../util/auth.api.js";
 import { menuFlow } from "./menu.flow.js";
-import { CustomerAPI } from "util/customer.api.js";
+import { CustomerAPI } from "../util/customer.api.js";
 
 export const entryFlow = addKeyword(EVENTS.WELCOME)
 .addAction(async (ctx, {endFlow, state}) => {
