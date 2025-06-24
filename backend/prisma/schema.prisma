@@ -13,7 +13,10 @@ datasource db {
 
 model Users {
   id          String       @id @default(uuid())
+  shortId     String? 
   name        String
+  country     String?
+  state       String?
   email       String?      @unique
   password    String?
   number      String?
@@ -30,6 +33,7 @@ model Users {
   orders         Orders[] @relation("OrderUser")
   assistedOrders Orders[] @relation("OrderAssistant")
   tasks Tasks[]
+  subTasks SubTasks[]
 }
 
 model Permissions {
@@ -48,6 +52,7 @@ model Permissions {
 
 model Raffles {
   id              String   @id @default(uuid())
+  shortId         String? 
   name            String
   description     String?
   image           String?
@@ -80,6 +85,7 @@ model RaffleWinnerNumbers {
 
 model Orders {
   id            String    @id @default(uuid())
+  shortId       String? 
   userId        String
   raffleId      String
   total         Int
@@ -114,6 +120,7 @@ model TicketReservations {
 
 model Tickets {
   id       String   @id @default(uuid())
+  shortId  String? 
   serial   String
   price    Int
   userId   String
@@ -125,6 +132,8 @@ model Tickets {
   user   Users   @relation(fields: [userId], references: [id])
   raffle Raffles @relation(fields: [raffleId], references: [id])
   order  Orders  @relation(fields: [orderId], references: [id])
+  
+  subTasks SubTasks[]
 }
 
 model PaymentProviders {
@@ -154,4 +163,21 @@ model Tasks {
   customer Users? @relation(fields: [customerId], references: [id])
   raffle Raffles? @relation(fields: [raffleId], references: [id])
   order Orders?  @relation(fields: [orderId], references: [id])
+
+  subtasks SubTasks[]
+}
+
+model SubTasks {
+  id String @id() @default(uuid())
+  taskId String
+  customerId String
+  status String
+  retries Int @default(0)
+  ticketId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  task Tasks @relation(fields: [taskId], references: [id])
+  customer Users? @relation(fields: [customerId], references: [id])
+  ticket Tickets? @relation(fields: [ticketId], references: [id])
 }
