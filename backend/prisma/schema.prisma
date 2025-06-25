@@ -22,11 +22,14 @@ model Users {
   number      String?
   role        String
   image      String?
-  permissions Permissions?
   status      String       @default("active")
   createdAt   DateTime     @default(now()) @db.Timestamp(6)
 
-  raffle             Raffles[]
+  permissions Permissions?
+  
+  rafflesCreated    Raffles[]  @relation("RaffleCreator")
+  rafflesJoined     Raffles[]  @relation("RaffleParticipants")
+
   tickets            Tickets[]
   ticketReservations TicketReservations[]
 
@@ -62,11 +65,13 @@ model Raffles {
   subscribers     Int      @default(0)
   visibility      String   @default("public")
   status          String   @default("ongoing")
-  createdBy       String
+  creatorId       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
 
-  user               Users                 @relation(fields: [createdBy], references: [id])
+  creator            Users      @relation("RaffleCreator", fields: [creatorId], references: [id])
+  participants       Users[]    @relation("RaffleParticipants")
+  
   orders             Orders[]
   ticketReservations TicketReservations[]
   tickets            Tickets[]
@@ -152,8 +157,8 @@ model Tasks {
   id String @id() @default(uuid())
   type String
   status String
-  description String?
   retries Int @default(0)
+  description String?
   orderId String?
   raffleId String?
   customerId String?
@@ -164,7 +169,7 @@ model Tasks {
   raffle Raffles? @relation(fields: [raffleId], references: [id])
   order Orders?  @relation(fields: [orderId], references: [id])
 
-  subtasks SubTasks[]
+  subTasks SubTasks[]
 }
 
 model SubTasks {
@@ -177,7 +182,7 @@ model SubTasks {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  task Tasks @relation(fields: [taskId], references: [id])
-  customer Users? @relation(fields: [customerId], references: [id])
-  ticket Tickets? @relation(fields: [ticketId], references: [id])
+  task Tasks @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  customer Users? @relation(fields: [customerId], references: [id], onDelete: NoAction)
+  ticket Tickets? @relation(fields: [ticketId], references: [id], onDelete: NoAction)
 }
