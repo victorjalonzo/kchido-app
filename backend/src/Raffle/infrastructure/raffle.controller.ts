@@ -1,55 +1,82 @@
-import { Controller, Post, Get, Put, Delete, UsePipes, ValidationPipe, Body, Res, HttpStatus, Param, UseFilters, UseGuards, Req } from "@nestjs/common";
+import { Controller, Post, Get, Put, Delete, UsePipes, ValidationPipe, Body, Res, HttpStatus, Param, UseFilters, UseGuards, Req, Query } from "@nestjs/common";
 import { CreateRaffleDTO } from "../application/create-raffle.dto";
 import { RaffleService } from "../application/raffle.service";
 import { Request, Response } from "express";
 import { RaffleExceptionFilter } from "./raffle-exception.filter";
 import { JwtAuthGuard } from "src/Auth/infrastructure/jwt-auth.guard";
-import { Raffle } from "../domain/raffle.entity";
 import { UpdateRaffleDTO } from "../application/update-raffle.dto";
+import { QueryRequestExtractor } from "src/Shared/util/queries-extractor";
+import { FindRaffleDto } from "../application/find-raffle.dto";
 
 @UseFilters(RaffleExceptionFilter)
 @Controller('api/v1/raffles')
 export class RaffleController {
+    validFilters = ['createdBy', 'status', 'visibility']
+    validIncludes = ['orders', 'tickets', 'subscribers', 'winnerNumbers']
+
     constructor(private readonly service: RaffleService){}
 
+    @UsePipes(new ValidationPipe({transform: true}))
     @Get('/public')
-    async findPublicMany(){
-        return await this.service.findPublicMany()
+    async findPublicMany(@Query() findRaffleDto: FindRaffleDto){
+
+        const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        return await this.service.findPublicMany(includeQueries)
     }
 
+    @UsePipes(new ValidationPipe({transform: true}))
     @Get('/public/:id')
-    async findPublicOne(@Param('id') id: string){
-        return await this.service.findPublicOne(id)
+    async findPublicOne(@Param('id') id: string, @Query() findRaffleDto: FindRaffleDto){
+
+        const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        return await this.service.findPublicOne(id, includeQueries)
     }
 
     @UseGuards(JwtAuthGuard)
+    @UsePipes(new ValidationPipe({transform: true}))
     @Post()
-    @UsePipes(new ValidationPipe())
     async create(@Body() createRaffleDto: CreateRaffleDTO, @Req() req: Request){
-        createRaffleDto.createdBy = req.user.userId
+        createRaffleDto.creatorId = req.user.userId
         return await this.service.create(createRaffleDto)
     }
 
-    @Put()
     @UseGuards(JwtAuthGuard)
-    @UsePipes(new ValidationPipe())
+    @UsePipes(new ValidationPipe({transform: true}))
+    @Put()
     async update(@Body() updateRaffleDto: UpdateRaffleDTO, @Req() req: Request){
-        console.log(updateRaffleDto)
         return await this.service.update(updateRaffleDto)
     }
 
-    @Get()
     @UseGuards(JwtAuthGuard)
-    async findMany(@Res() res: Response){
-        const data = await this.service.findMany()
-        return res.status(HttpStatus.OK).json(data)
+    @UsePipes(new ValidationPipe({transform: true}))
+    @Get()
+    async findMany(@Query() findRaffleDto: FindRaffleDto){
+        const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+        
+        return await this.service.findMany(filterQueries, includeQueries)
     }
 
     @UseGuards(JwtAuthGuard)
+    @UsePipes(new ValidationPipe({transform: true}))
     @Get(':id')
-    async findOne(@Param('id') id: string, @Res() res: Response){
-        const data = await this.service.findOne(id)
-        return res.status(HttpStatus.OK).json(data)
+    async findOne(@Param('id') id: string, @Query() findRaffleDto: FindRaffleDto){
+        const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        return await this.service.findById(id, includeQueries)
     }
 
     @UseGuards(JwtAuthGuard)
