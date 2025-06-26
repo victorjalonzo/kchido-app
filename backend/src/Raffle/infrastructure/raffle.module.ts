@@ -7,6 +7,7 @@ import { WinnerNumberModule } from "src/WinnerNumber/infrastructure/winner-numbe
 @Module({
     imports: [SharedModule, WinnerNumberModule],
     providers: [RaffleService],
-    controllers: [RaffleController]
+    controllers: [RaffleController],
+    exports: [RaffleService]
 })
 export class RaffleModule {}
