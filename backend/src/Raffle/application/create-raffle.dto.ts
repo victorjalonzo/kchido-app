@@ -21,7 +21,7 @@ export class CreateRaffleDTO {
     visibility: RaffleVisibility
 
     @IsOptional() @IsString()
-    createdBy?: string
+    creatorId?: string
 
     @IsDateString()
     endsAt: Date
