@@ -1,28 +1,39 @@
 interface Options {
-    validIncludes: string[],
-    validFilters: string[]
+    validIncludes?: string[],
+    validFilters?: string[]
 }
+
+function toCamelCase(str: string): string {
+    return str.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+  }
 
 export class QueryRequestExtractor {
     static extract = (
     query: Record<string, any>,
-    options: Options
+    options: Options = {}
 ) => {
-        const {validIncludes, validFilters } = options
+        if (!query) throw Error('query was not provided')
+            
+        const validFilters = options.validFilters ?? []
+        const validIncludes = options.validIncludes ?? []
         
         const filterQueries = {}
         const includeQueries = {}
 
-        validFilters.forEach(filter => 
-            query[filter] ? filterQueries[filter] = query[filter] : null
-        )
+        if (validFilters.length) {
+            validFilters.forEach(filter => 
+                query[filter] ? filterQueries[filter] = query[filter] : null
+            )
+        }
 
-        if (query.include){
-            query.include.forEach(key => {
-                validIncludes.includes(key) ? includeQueries[key] = true: null
+        if (validIncludes.length) {
+            query.include?.forEach((key: string) => {
+                if (key.includes('-')) key = toCamelCase(key)
+
+                validIncludes?.includes(key) ? includeQueries[key] = true: null
             })
         }
 
-        return { filterQueries, includeQueries, }
+        return { filterQueries, includeQueries }
     }
 }
