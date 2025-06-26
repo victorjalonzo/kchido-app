@@ -26,21 +26,25 @@ export class OrderController {
         return await this.service.create(createOrderDto)
     }
 
+    @UseGuards(JwtAuthGuard)
     @Put()
     @UsePipes(new ValidationPipe())
     async update(@Body() updateOrderDto: UpdateOrderDTO){
         return await this.service.update(updateOrderDto)
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get()
     @UsePipes(new ValidationPipe({transform: true}))
-    async findMany(@Query() query: FindOrderDto){
+    async findMany(@Query() query: FindOrderDto, @Req() req: Request){
+        const userId = req.user.userId
+
         const { filterQueries, includeQueries } = QueryRequestExtractor.extract(query, {
             validFilters: this.validFilters,
             validIncludes: this.validIncludes
         })
 
-        return await this.service.findMany(filterQueries, includeQueries)
+        return await this.service.findManyWithUserScope(userId, filterQueries, includeQueries)
     }
 
     @Get(':id')
