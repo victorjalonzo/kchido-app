@@ -26,13 +26,13 @@ export class AuthController {
   @Get('me')
   async getMe(@Req() req: Request) {
     const userId = req.user.userId
-    return await this.userService.findById(userId)
+    return await this.userService.findById(userId, { permissions: true})
   }
 
   @UseGuards(JwtAuthGuard)
   @UsePipes(new ValidationPipe())
   @Patch('me')
   async updateMe(@Req() req: Request, @Body() dto: UpdateMeDTO) {
-    return await this.userService.updateSelf(req.user.userId, dto)
+    return await this.userService.updateSelf(req.user.userId, dto, { permissions: true })
   }
 }
