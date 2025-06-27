@@ -13,7 +13,7 @@ datasource db {
 
 model Users {
   id          String       @id @default(uuid())
-  shortId     String? 
+  shortId     String 
   name        String
   country     String?
   state       String?
@@ -55,7 +55,7 @@ model Permissions {
 
 model Raffles {
   id              String   @id @default(uuid())
-  shortId         String? 
+  shortId         String 
   name            String
   description     String?
   image           String?
@@ -90,7 +90,7 @@ model RaffleWinnerNumbers {
 
 model Orders {
   id            String    @id @default(uuid())
-  shortId       String? 
+  shortId       String 
   userId        String
   raffleId      String
   total         Int
@@ -125,7 +125,7 @@ model TicketReservations {
 
 model Tickets {
   id       String   @id @default(uuid())
-  shortId  String? 
+  shortId  String 
   serial   String
   price    Int
   userId   String
