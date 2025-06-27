@@ -2,43 +2,50 @@ import { Injectable } from '@nestjs/common';
 import { PrismaClient} from '@prisma/client';
 import { Model } from './shared.types';
 
-
 @Injectable()
 export class SharedRepository<T> {
-    prismClient: PrismaClient = new PrismaClient()
+    prismaClient: PrismaClient = new PrismaClient()
+
+    transaction = async (callback: (prisma: PrismaClient) => Promise<any>) => {
+        return await this.prismaClient.$transaction(callback)
+    }
 
     create = async (model: Model, data: Record<string, any>): Promise<T> => {
         // @ts-ignore
-        return <T>await this.prismClient[model].create({data: data})
+        return <T>await this.prismaClient[model].create({data: data})
     }
 
-    findOne = async (model: Model, filters?: Record<string, any>): Promise<T | null> => {
-        // @ts-ignore
-        return <T | null>await this.prismClient[model].findFirst({where: filters})
+    createMany = async (model: Model, data: Record<string, any>[]): Promise<{ count: number }> => {
+        return await this.prismaClient[model].createMany({data: data})
     }
 
-    findMany = async (model: Model, filters?: Record<string, any>): Promise<T[]> => {
+    findOne = async (model: Model, filters?: Record<string, any>, include?: Record<any, any>): Promise<T | null> => {
         // @ts-ignore
-        return <T[]>await this.prismClient[model].findMany({where: filters})
+        return <T | null>await this.prismaClient[model].findFirst({where: filters, include: include})
     }
 
-    update = async (model: Model, data: Record<string, any>, filters: Record<string, any>): Promise<T | null> => {
+    findMany = async (model: Model, filters?: Record<string, any>, include?: Record<any, any>): Promise<T[]> => {
         // @ts-ignore
-        return <T | null>await this.prismClient[model].update({data: data, where: filters as any})
+        return <T[]>await this.prismaClient[model].findMany({where: filters, include: include})
+    }
+
+    update = async (model: Model, data: Record<string, any>, filters: Record<string, any>, include?: Record<any, any>): Promise<T | null> => {
+        // @ts-ignore
+        return <T | null>await this.prismaClient[model].update({data: data, where: filters as any, include: include})
     }
 
     updateMany = async (model: Model, data: Record<string, any>, filters: Record<string, any>): Promise<T[]> => {
         // @ts-ignore
-        return <T[]><any>await this.prismClient[model].updateMany({data: data, where: filters})
+        return <T[]><any>await this.prismaClient[model].updateMany({data: data, where: filters})
     }
 
     delete = async (model: Model, filters: Record<string, any>): Promise<T | null> => {
         // @ts-ignore
-        return <T | null>await this.prismClient[model].delete({where: filters})
+        return <T | null>await this.prismaClient[model].delete({where: filters})
     }
 
     deleteMany = async (model: Model, filters: Record<string, any>): Promise<T[]> => {
         // @ts-ignore
-        return <T[]><any>await this.prismClient[model].deleteMany({where: filters})
+        return <T[]><any>await this.prismaClient[model].deleteMany({where: filters})
     }
 }
