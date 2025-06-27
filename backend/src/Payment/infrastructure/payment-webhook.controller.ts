@@ -2,10 +2,16 @@ import { Controller, Post, Req, Res } from "@nestjs/common";
 import { Request, Response } from "express";
 import { OrderService } from "src/Order/application/order.service";
 import { OrderStatusAlreadySet } from "src/Order/domain/order.exception";
+import { CreateTaskDto } from "src/Task/application/create-task.dto";
+import { TaskService } from "src/Task/application/task.service";
+import { TaskStatus, TaskType } from "src/Task/domain/task.entity";
 
-@Controller('payment-webhook')
+@Controller('api/v1/payment-webhook')
 export class PaymentWebhookController {
-  constructor (private readonly orderService: OrderService){}
+  constructor (
+    private readonly orderService: OrderService,
+    private readonly taskService: TaskService
+  ){}
     
     @Post()
     async handle(@Req() req: Request, @Res() res: Response){
@@ -14,8 +20,16 @@ export class PaymentWebhookController {
 
         if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
           try {
-            const order = await this.orderService.complete(orderId)
-            console.log(order)
+            await this.orderService.complete(orderId)
+
+            const createTaskDto: CreateTaskDto = {
+              type: TaskType.PAYMENT_COMPLETED,
+              orderId: orderId,
+              status: TaskStatus.DELIVERING
+            }
+
+            await this.taskService.create(createTaskDto)
+            
           }
           catch (e) {
             if (e instanceof OrderStatusAlreadySet) null
