@@ -4,7 +4,18 @@ config()
 
 export class SharedConfig {
     static get serverPort(): number | string{
-        return process.env.PORT ?? 3001
+        return process.env.PORT ?? 3000
+    }
+
+    static get apiURL(): string {
+        const schema = process.env.SCHEMA
+        const host = process.env.HOST
+        const port = process.env.PORT ?? 3000
+        const api = process.env.API
+
+        return host == 'localhost'
+        ? `${schema}://${host}:${port}/${api}`
+        : `${schema}://${host}/${api}`
     }
 
     static get databaseURL(): string{
