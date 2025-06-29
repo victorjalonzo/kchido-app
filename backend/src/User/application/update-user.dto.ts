@@ -9,6 +9,9 @@ export class UpdateUserDTO {
     name?: string
 
     @IsOptional() @IsString()
+    image?: string 
+
+    @IsOptional() @IsString()
     number?: string
 
     @IsOptional() @IsString()
@@ -16,6 +19,9 @@ export class UpdateUserDTO {
 
     @IsOptional() @IsString()
     password?: string
+
+    @IsOptional() @IsString()
+    newPassword?: string
 
     @IsOptional() @IsObject()
     permissions?: CreatePermissionDTO
