@@ -10,6 +10,7 @@ export enum OrderStatus {
 
 interface Props {
     id: string
+    shortId: string
     userId: string
     raffleId: string 
     total: number
@@ -28,6 +29,7 @@ interface Props {
 
 export class Order implements Props {
     id: string
+    shortId: string
     userId: string
     raffleId: string 
     total: number
@@ -44,6 +46,7 @@ export class Order implements Props {
 
     constructor (props: Props) {
         this.id = props.id
+        this.shortId = props.shortId
         this.userId = props.userId
         this.raffleId = props.raffleId
         this.total = props.total
