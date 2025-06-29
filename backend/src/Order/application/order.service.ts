@@ -17,6 +17,7 @@ import { RaffleService } from "src/Raffle/application/raffle.service";
 import { Raffle } from "src/Raffle/domain/raffle.entity";
 import { TicketReservationNotFound } from "src/TicketReservation/domain/ticket-reservation.exception";
 import { UserService } from "src/User/application/user.service";
+import { OrderShortIdGenerator } from "../infrastructure/util/order-shortid-generator";
 
 export interface IncludeOrdersRelationValues {
     user?: Users,
@@ -40,13 +41,14 @@ export class OrderService {
     create = async (dto: CreateOrderDTO): Promise<Order> => {
         const { tickets, ...data } = dto
 
-        if (!data.status) data.status = OrderStatus.PENDING
-
         const raffle = await this.raffleService.findById(dto.raffleId)
         const pricePeerTicket = raffle.pricePeerTicket
 
+        data.shortId = OrderShortIdGenerator.generate()
         data.quantity = dto.tickets.length
         data.total = pricePeerTicket * dto.tickets.length
+
+        if (!data.status) data.status = OrderStatus.PENDING
 
         const record = await this.repository.transaction(async (tx) => {
             return await tx[this.model].create({ data })
