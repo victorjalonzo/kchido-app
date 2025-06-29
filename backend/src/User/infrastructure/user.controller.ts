@@ -4,10 +4,15 @@ import { Response } from 'express';
 import { UserExceptionFilter } from "./user-exception.filter";
 import { CreateUserDTO } from "../application/create-user.dto";
 import { UpdateUserDTO } from "../application/update-user.dto";
+import { FindUserDto } from "../application/find-user-dto";
+import { QueryRequestExtractor } from "src/Shared/util/queries-extractor";
 
 @UseFilters(UserExceptionFilter)
 @Controller("api/v1/users")
 export class UserController {
+    validFilters = ['role', 'number']
+    validIncludes = ['permissions', 'tickets']
+
     constructor(private readonly userService: UserService){}
 
     @Post()
@@ -24,15 +29,34 @@ export class UserController {
     }
 
     @Get()
-    async findMany(@Query('role') role: string, @Res() res: Response) {
-        const data = await this.userService.findMany(role)
-        return res.status(HttpStatus.OK).json(data)
+    @UsePipes(new ValidationPipe({transform: true}))
+    async findMany(@Query() findUserDto: FindUserDto) {
+        const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findUserDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        console.log(filterQueries, includeQueries)
+
+        return await this.userService.findMany(filterQueries, includeQueries)
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string, @Res() res: Response) {
-        const data =  await this.userService.findOne(id)
-        return res.status(HttpStatus.OK).json(data)
+    async findOne(@Param('id') id: string, @Query() findUserDto: FindUserDto) {
+        const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findUserDto, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        filterQueries['id'] = id
+
+        return await this.userService.findOne(filterQueries, includeQueries)
+    }
+
+    @Get(':id/profile')
+    async getProfilePhoto(@Param('id') id: string, @Res() res: Response){
+        const profilePath = await this.userService.getProfilePhoto(id)
+        return res.sendFile(profilePath)
     }
 
     @Delete(':id')
