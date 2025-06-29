@@ -25,4 +25,7 @@ export class CreateRaffleDTO {
 
     @IsDateString()
     endsAt: Date
+
+    @IsOptional() @IsString()
+    shortId?: string 
 }
