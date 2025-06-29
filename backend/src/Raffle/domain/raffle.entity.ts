@@ -15,6 +15,7 @@ export enum RaffleStatus {
 
 export interface Props {
   id: string,
+  shortId: string
   name: string,
   image: string | null,
   description: string | null
@@ -38,6 +39,7 @@ export interface Props {
 
 export class Raffle implements Props {
   id: string
+  shortId: string
   name: string
   description: string | null
   image: string | null
@@ -60,6 +62,7 @@ export class Raffle implements Props {
 
   constructor (props: Props){
     this.id = props.id
+    this.shortId = props.shortId
     this.name = props.name,
     this.description = props.description
     this.image = props.image
