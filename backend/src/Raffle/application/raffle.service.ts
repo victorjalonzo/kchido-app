@@ -10,7 +10,7 @@ import { WinnerNumberService } from "src/WinnerNumber/application/winner-number.
 import { CreateWinnerNumberDTO } from "src/WinnerNumber/application/create-winner-number.dto";
 import { WinnerNumber } from "src/WinnerNumber/domain/winner-number.entity";
 import { UpdateRaffleDTO } from "./update-raffle.dto";
-import { Base64 } from "src/Shared/util/base64";
+import * as fs from 'fs'
 import { 
     PrismaClient,
     Orders as PrismaOrder, 
@@ -18,6 +18,9 @@ import {
     Tickets as PrismaTicket, 
     Users as PrismaUser,
 } from "@prisma/client";
+import { RaffleShortIdGenerator } from "../infrastructure/util/raffle-shortId-generator";
+import { RaffleImageUploader } from "../infrastructure/util/raffle-image-uploader";
+import { SharedConfig } from "src/Shared/shared.config";
 
 export interface FindRaffleFilters {
     id?: string
@@ -56,6 +59,8 @@ export class RaffleService {
         if (typeof dto.endsAt == 'string') dto.endsAt = new Date(dto.endsAt)
         const {image, ...data} = dto
 
+        dto.shortId = RaffleShortIdGenerator.generate()
+
         return await this.repository.create(this.model, dto)
         .then(async (record) => {
             const raffle = image
@@ -71,7 +76,9 @@ export class RaffleService {
 
         const {winnerNumbers, ...updateDTO} = dto
 
-        if (updateDTO.image) updateDTO.image = Base64.decode(updateDTO.image, updateDTO.id)
+        if (updateDTO.image) {
+            updateDTO.image = RaffleImageUploader.save(dto.id, updateDTO.image,)
+        }
 
         return await this.repository.update(this.model, updateDTO, {id: dto.id})
         .then(async record => {
@@ -126,6 +133,26 @@ export class RaffleService {
         })
     }
 
+    getRaffleImage = async (id: string): Promise<string> => {
+        try {
+            const raffle = await this._findOne({ id }, {}, { keepRawRecord: true })
+            const imagePath = raffle.image
+    
+            if (!imagePath) throw Error('No Raffle Image path found.')
+    
+            if (!fs.existsSync(imagePath)) {
+              throw new Error('Raffle image file missing.');
+            }
+    
+            return imagePath;
+        }
+        catch(e) {
+            const apiURL = SharedConfig.apiURL
+            const staticEndpoint = `${apiURL}/static/default/raffle-image.png`
+            return staticEndpoint;
+        }
+    }
+
     incrementAccumulated = async (id: string, increment: number, options?: { transaction: PrismaClient }) => {
         const raffle = await this._findOne({ id })
         const accumulated = raffle.accumulated + increment
@@ -152,11 +179,14 @@ export class RaffleService {
         })
     }
 
-    _findOne = async (filters?: FindRaffleFilters, includes?: RaffleIncludeOptions): Promise<Raffle> => {
+    _findOne = async (filters?: FindRaffleFilters, includes?: RaffleIncludeOptions, options?: {keepRawRecord?: boolean}): Promise<Raffle> => {
         return await this.repository.findOne(this.model, filters, includes)
         .then((record: (PrismaRaffle & RaffleIncludeValues)) => {
             if (!record) throw new RaffleNotFoundException()
-            return RaffleMapper.toDomain(record)
+
+            return !options?.keepRawRecord
+                ? RaffleMapper.toDomain(record)
+                : record
         })
     }
 
