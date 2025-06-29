@@ -7,7 +7,7 @@ import { TicketNotFound } from "../domain/ticket.exception";
 import { Injectable } from "@nestjs/common";
 import { FindTicketFilter } from "./find-ticket-filter";
 import { TicketJoinOption } from "./ticket-join-option";
-import { TicketQRCode } from "../infrastructure/ticket.qrcode";
+import { TicketQRCode } from "../infrastructure/util/ticket.qrcode";
 import * as fs from 'fs';
 import { TicketShortIdGenerator } from "../infrastructure/util/ticket-shortId-generator";
 import { 
