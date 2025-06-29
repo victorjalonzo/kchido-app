@@ -24,4 +24,7 @@ export class CreateOrderDTO {
 
     @IsOptional() @IsString()
     assistedBy?: string 
+
+    @IsOptional() @IsString()
+    shortId?: string
 }
