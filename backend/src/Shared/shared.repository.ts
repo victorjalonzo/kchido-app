@@ -10,9 +10,9 @@ export class SharedRepository<T> {
         return await this.prismaClient.$transaction(callback)
     }
 
-    create = async (model: Model, data: Record<string, any>): Promise<T> => {
+    create = async (model: Model, data: Record<string, any>, include?: Record<any, any>): Promise<T> => {
         // @ts-ignore
-        return <T>await this.prismaClient[model].create({data: data})
+        return <T>await this.prismaClient[model].create({data: data, include: include})
     }
 
     createMany = async (model: Model, data: Record<string, any>[]): Promise<{ count: number }> => {
