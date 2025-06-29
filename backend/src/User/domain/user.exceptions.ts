@@ -3,3 +3,9 @@ export class UserNotFoundException extends Error {
         super('user not found')
     }
 }
+
+export class PasswordMismatchException extends Error {
+    constructor() {
+      super('Current password does not match')
+    }
+  }
