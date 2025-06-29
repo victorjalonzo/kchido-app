@@ -79,6 +79,12 @@ export class RaffleController {
         return await this.service.findById(id, includeQueries)
     }
 
+    @Get(':id/image')
+    async getImage(@Param('id') id: string, @Res() res: Response){
+        const imagePath = await this.service.getRaffleImage(id)
+        return res.sendFile(imagePath)
+    }
+
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
     async deleteOne(@Param('id') id: string){
