@@ -1,7 +1,7 @@
 import { fetchAPI } from "./api.js"
 import { Raffle } from "./raffle.type.js";
 
-const endpoint = '/raffles/public'
+const endpoint = '/raffles'
 
 export class RaffleAPI {
     static async getAll(query?: Record<string, string> | Record<string, boolean>): Promise<Raffle[]> {
