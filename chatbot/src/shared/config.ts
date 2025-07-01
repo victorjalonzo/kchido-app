@@ -7,6 +7,15 @@ export class Config {
         return Number(process.env.PORT ?? 3000)
     }
 
+    static get appBaseURL(): string {
+        const PROTOCOL = process.env.PROTOCOL
+        const HOST = process.env.HOST
+        const PORT = process.env.PORT
+
+        const BASE_URL=`${PROTOCOL}://${HOST}:${PORT}`
+        return BASE_URL
+    }
+
     static get serverURL(): string {
         const serverURL = process.env.SERVER_URL
         if (!serverURL) throw Error('Missing SERVER_URL environment variable')
