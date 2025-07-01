@@ -11,6 +11,8 @@ export interface Customer {
 export interface CreateCustomerPayload {
     name: string
     role: 'customer'
+    country: string
+    state: string 
     number: string
     email?: string
     image?: string 
@@ -18,6 +20,8 @@ export interface CreateCustomerPayload {
 
 export interface UpdateCustomerPayload {
     id: string
+    country?: string
+    state?: string 
     name?: string
     number?: string
     email?: string
