@@ -9,7 +9,7 @@ export class OrderAPI {
     }
 
     static get = async (id: string, query?: Record<string, string> | Record<string, boolean>): Promise<Order> => {
-        return await fetchAPI(`${endpoint}/${id}`, query)
+        return await fetchAPI(`${endpoint}/${id}`, {}, query)
     }
 
     static getAll = async (query?: Record<string, string> | Record<string, boolean>): Promise<Order[]> => {
