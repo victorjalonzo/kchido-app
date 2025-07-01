@@ -65,15 +65,9 @@ export class OrderService {
                         return ticketDto
                     })
 
-                    await this.ticketService
-                        .createMany(ticketDtos, { 
-                            transaction: tx 
-                        })
-
-                    await this.raffleService
-                        .incrementAccumulated(record.raffleId, record.total, { 
-                            transaction: tx
-                        })
+                    await this.ticketService.createMany(ticketDtos, { transaction: tx })
+                    await this.raffleService.incrementAccumulated(record.raffleId, record.total, { transaction: tx })
+                    await this.raffleService.addParticipant(record.raffleId, record.userId, { transaction: tx})
                 }
                 else {
                     const ticketReservationDtos: CreateTicketReservationDTO[] = tickets.map(serial => {
@@ -86,10 +80,7 @@ export class OrderService {
                         return ticketReservationDto
                     })
     
-                    await this.ticketReservationService
-                        .createMany(ticketReservationDtos, {
-                            transaction: tx
-                        })
+                    await this.ticketReservationService.createMany(ticketReservationDtos, { transaction: tx })
                 }
 
                 return record; 
@@ -129,6 +120,8 @@ export class OrderService {
                 }})
     
                 await this.ticketService.createMany(createTicketDtos, {transaction: tx})
+                await this.raffleService.incrementAccumulated(order.raffleId, order.total, { transaction: tx })
+                await this.raffleService.addParticipant(order.raffleId, order.userId, { transaction: tx})
             })
 
             return order;
