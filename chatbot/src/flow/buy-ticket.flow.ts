@@ -1,14 +1,21 @@
-import { addKeyword, EVENTS } from "@builderbot/bot";
+import { addKeyword, EVENTS, utils } from "@builderbot/bot";
 import { RaffleAPI } from "../util/raffle.api.js";
-import { Raffle } from "../util/raffle.type.js";
+import { Raffle, RaffleStatus } from "../util/raffle.type.js";
 import { OrderAPI } from "../util/order.api.js";
 import { CreateOrderPayload } from "../util/order.type.js";
-import { CreateCustomerPayload, Customer, UpdateCustomerPayload } from "util/customer.type.js";
+import { CreateCustomerPayload, Customer, UpdateCustomerPayload } from "../util/customer.type.js";
 import { CustomerAPI } from "../util/customer.api.js";
 import { AuthAPI } from "../util/auth.api.js";
 import { Config } from "../shared/config.js";
 import { Validator } from "../util/message-validator.js";
 import { TicketSerial } from "../util/ticket-generator.js";
+import { Task, TaskStatus, UpdateSubTaskPayload, UpdateTaskPayload } from "../util/tasks.type.js";
+import { TicketAPI } from "../util/ticket.api.js";
+import { writeFileSync } from "fs";
+import * as path from 'path'
+import { SubTaskAPI } from "../util/subTask.api.js";
+import { TaskAPI } from "../util/task.api.js";
+import { ConversactionAbort } from "../util/exceptions.js";
 
 
 interface UserData {
@@ -18,8 +25,10 @@ interface UserData {
     choosenTicketType: string
     choosenTickets: number[]
     choosenNumber: string
+    choosenContactNumber: string 
     choosenName: string
-    choosenCountryState: string
+    choosenCountry: string,
+    choosenState: string
 
     availableRaffles: Raffle[]
 }
@@ -28,14 +37,14 @@ const PAGE_URL = Config.pageURL
 
 //Entry flow
 export const buyTicketFlow = addKeyword(EVENTS.ACTION)
-.addAction( async (ctx, { gotoFlow, state, endFlow }) => {
+.addAction( async (_, { gotoFlow }) => {
     return gotoFlow(_chooseRaffleFlow)
 })
 
 //Raffle flow
 export const _chooseRaffleFlow = addKeyword(EVENTS.ACTION)
 .addAction(async (_, {flowDynamic, state, endFlow}) => {
-    const availableRaffles = await RaffleAPI.getAll()
+    const availableRaffles = await RaffleAPI.getAll({ status: RaffleStatus.ONGOING, visibility: 'public' })
 
     if (!availableRaffles.length) {
         return endFlow('No tenemos sorteos disponibles en este momento.')
@@ -47,12 +56,13 @@ export const _chooseRaffleFlow = addKeyword(EVENTS.ACTION)
     + `\n\n`
     + availableRaffles.map((raffle, index) => `*${index+1}*. ${raffle.name}`).join('\n')
     
-    const hint = `\n\n_Escribe el numero del sorteo en que deseas participar._`
+    const hint = `\n\n_❕ Escribe el numero del sorteo en que deseas participar._`
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 
 })
-.addAction({capture: true}, async (ctx, {fallBack, state, gotoFlow}) => {
+.addAction({capture: true}, async (ctx, {fallBack, state, gotoFlow, endFlow}) => {
     try {
         const availableRaffles = state.get('availableRaffles')
         const choosenRaffle = Validator.getOption(ctx.body, availableRaffles)
@@ -62,6 +72,7 @@ export const _chooseRaffleFlow = addKeyword(EVENTS.ACTION)
         return gotoFlow(_chooseTicketAmountFlow)
     }
     catch (e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
@@ -75,11 +86,12 @@ export const _chooseTicketAmountFlow = addKeyword(EVENTS.ACTION)
     + `\n\n`
     + `Precio de boleto: ${precio} USD`
 
-    const hint = '\n\n_Escribe la cantidad de boletos que quieres comprar_'
+    const hint = '\n\n_❕ Escribe la cantidad numerica de boletos que quieres comprar_'
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, { state, fallBack, gotoFlow}) => {
+.addAction({capture: true}, async (ctx, { state, fallBack, gotoFlow, endFlow}) => {
     try {
         const choosenTicketAmount = Validator.getNumber(ctx.body)
         state.update({ choosenTicketAmount })
@@ -87,6 +99,7 @@ export const _chooseTicketAmountFlow = addKeyword(EVENTS.ACTION)
         return gotoFlow(_chooseTicketTypeFlow)
     }
     catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
@@ -103,29 +116,37 @@ export const _chooseTicketTypeFlow = addKeyword(EVENTS.ACTION)
     + ['Si', 'No'].map((e, index) => `*${index+1}*. ${e}`).join('\n')
 
     const hint = `\n`
-    + `\n_Escribe *1* para generar automaticamente_`
-    + `\n_Escribe *2* para introducirlos manualmente._`
+    + '\n*Opciones:*\n'
+    + `\n_1️⃣ Escribe *1* para generar automaticamente_`
+    + `\n_2️⃣ Escribe *2* para introducirlos manualmente._`
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, {fallBack, gotoFlow }) => {
+.addAction({capture: true}, async (ctx, {fallBack, gotoFlow, endFlow }) => {
     try {
         return Validator.isAgree(ctx.body)
         ? gotoFlow(_chooseGeneratedTicketFlow)
         : gotoFlow(_chooseManualTicketFlow)
     }
     catch (e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
 
 //Ticket Generation Flow 
 export const _chooseGeneratedTicketFlow = addKeyword(EVENTS.ACTION)
-.addAction(async (_, { flowDynamic, state }) => {
+.addAction(async (_, { flowDynamic, state, gotoFlow }) => {
     await flowDynamic('Generando boletos...')
 
     const choosenTicketAmount = state.get('choosenTicketAmount')
     const choosenTickets = TicketSerial.generate(choosenTicketAmount)
+
+    /*** *
+    VERIFY IF THE TICKETS ARE ALREADY TAKEN HERE.
+    IF THEY ARE TAKEN, GENERATE ANOTHER ONE. 
+    ***/
 
     state.update( { choosenTickets })
 
@@ -135,28 +156,9 @@ export const _chooseGeneratedTicketFlow = addKeyword(EVENTS.ACTION)
     )
     + `\n\n ${choosenTickets.map((ticket, index) => `${index+1}. *${ticket}*`).join('\n')}`
 
-    return await flowDynamic(message)
-})
-.addAction(async (_, { flowDynamic }) => {
-    const message = `*Deseas continuar con estos boletos?*`
-    + `\n\n`
-    + ['Si', 'No'].map((option, index) =>  `*${index+1}*. ${option}`).join('\n')
+    await flowDynamic(message)
 
-    const hint = '\n'
-    + '\n_Escribe *1* para continuar con los boletos_'
-    + '\n_Escribe *2* para seleccionar otros boletos_'
-
-    await flowDynamic(message + hint)
-
-})
-.addAction({ capture: true}, async (ctx, {fallBack, gotoFlow}) => {
-    try {
-        if (!Validator.isAgree(ctx.body)) return gotoFlow(_chooseTicketTypeFlow)
-        return gotoFlow(_providePersonalInformation)
-    }
-    catch (e) {
-        return fallBack(e.message)
-    }
+    return gotoFlow(_confirmChoosenTickets)
 })
 
 export const _chooseManualTicketFlow = addKeyword(EVENTS.ACTION)
@@ -170,49 +172,66 @@ export const _chooseManualTicketFlow = addKeyword(EVENTS.ACTION)
     : `*Escribe el numero de tu boleto`
 
     const hint = choosenTicketAmount > 1 
-    ? `\n\n_Escribe un numero de *6 digitos* para tu boleto #${currentIndex}_`
-    : `\n\n_Escribe un numero de *6 digitos* para tu boleto_`
+    ? `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto #${currentIndex}_`
+    : `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto_`
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
-.addAction({ capture: true }, async (ctx, { state, flowDynamic, gotoFlow}) => {
-    const choosenTicket = ctx.body
-    const choosenTicketAmount = state.get('choosenTicketAmount')
-    const choosenTickets = state.get('choosenTickets') ?? []
-
-    choosenTickets.push(choosenTicket)
-
-    state.update({ choosenTickets })
-
-    if (choosenTickets.length < choosenTicketAmount) {
-        return gotoFlow(_chooseManualTicketFlow)
-    }
-
-    const message = `*¿Deseas continuar con estos boletos?*`
-    + '\n'
-    + choosenTickets.map((ticket, index) => `${index+1}. ${ticket}`).join('\n')
-    + '\n\n'
-    + ['Si', 'No'].map((option, index) =>  `*${index+1}*. ${option}`).join('\n')
-
-    const hint = '\n'
-    + '\n_Escribe *1* para continuar con los boletos_'
-    + '\n_Escribe *2* para seleccionar otros boletos_'
-
-    return flowDynamic(message + hint)
-})
-.addAction({capture: true}, async (ctx, { gotoFlow, fallBack}) => {
+.addAction({ capture: true }, async (ctx, { state, flowDynamic, gotoFlow, fallBack, endFlow}) => {
     try {
-        if (!Validator.isAgree(ctx.body)) {
-            return gotoFlow(_chooseTicketTypeFlow)
+        const choosenTicket = ctx.body
+        const choosenTicketAmount = state.get('choosenTicketAmount')
+        const choosenTickets = state.get('choosenTickets') ?? []
+    
+        choosenTickets.push(choosenTicket)
+    
+        state.update({ choosenTickets })
+    
+        if (choosenTickets.length < choosenTicketAmount) {
+            return gotoFlow(_chooseManualTicketFlow)
         }
-        
-        return gotoFlow(_providePersonalInformation)
+    
+        const message = (choosenTickets.length > 1
+            ? `Tus boletos seleccionados son:`
+            : `Tu boleto seleccionado es:`
+        )
+        + `\n\n ${choosenTickets.map((ticket, index) => `${index+1}. *${ticket}*`).join('\n')}`
+    
+        await flowDynamic(message)
+    
+        return gotoFlow(_confirmChoosenTickets)
     }
     catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
 
+export const _confirmChoosenTickets = addKeyword(EVENTS.ACTION)
+.addAction(async (_, { flowDynamic }) => {
+    const message = `*Deseas continuar con estos boletos?*`
+    + `\n\n`
+    + ['Si', 'No'].map((option, index) =>  `*${index+1}*. ${option}`).join('\n')
+
+    const hint = '\n'
+    + "\n*Opciones:*\n"
+    + '\n_1️⃣ Escribe *1* para continuar con los boletos_'
+    + '\n_2️⃣ Escribe *2* para seleccionar otros boletos_'
+    + Validator.getCancelHint()
+
+    await flowDynamic(message + hint)
+})
+.addAction({ capture: true}, async (ctx, {fallBack, gotoFlow, endFlow}) => {
+    try {
+        if (!Validator.isAgree(ctx.body)) return gotoFlow(_chooseTicketTypeFlow)
+        return gotoFlow(_providePersonalInformation)
+    }
+    catch (e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
+        return fallBack(e.message)
+    }
+})
 
 //Provide personal information flow
 export const _providePersonalInformation = addKeyword(EVENTS.ACTION)
@@ -222,8 +241,10 @@ export const _providePersonalInformation = addKeyword(EVENTS.ACTION)
     if (customer) {
         state.update({ 
             choosenName: customer.name,
-            choosenCountryState: customer.countryState,
-            choosenNumber: customer.number
+            choosenCountry: customer.country,
+            choosenState: customer.state,
+            choosenNumber: customer.number,
+            choosenContactNumber: customer.contactNumber
          })
          return gotoFlow(_confirmPersonalInformation)
     }
@@ -237,34 +258,44 @@ export const _providePersonalInformation = addKeyword(EVENTS.ACTION)
 export const _provideFirstTimeNumberFlow = addKeyword(EVENTS.ACTION)
 .addAction(async (ctx, {flowDynamic}) => {
     const currentNumber = ctx.from
-    const message = `*¿Quieres utilizar tu numero actual _${currentNumber}_ como numero de contacto para comunicarnos contigo?* ☎️`
+    const message = `*¿Quieres utilizar tu numero actual ${currentNumber} como numero de contacto para comunicarnos contigo?* ☎️`
     + `\n\n`
     + ['Si', 'No'].map((option, index) => `*${index+1}*. ${option}`).join('\n')
 
     const hint = `\n`
-    + `\n_Escribe *1* para seleccionar tu numero actual_`
-    + `\n_Escribe *2* para elegir otro_`
+    + `\n_1️⃣ Escribe *1* para seleccionar tu numero actual_`
+    + `\n_2️⃣ Escribe *2* para elegir otro_`
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, { state, flowDynamic, gotoFlow }) => {
-    if (!Validator.isAgree(ctx.body)) return
+.addAction({capture: true}, async (ctx, { state, flowDynamic, gotoFlow, fallBack, endFlow }) => {
+    try {
+        if (!Validator.isAgree(ctx.body)) return gotoFlow(_provideManualContactNumber)
 
-    const choosenNumber = ctx.from
-    state.update({ choosenNumber })
-
-    await flowDynamic(`Haz seleccionado el numero *${choosenNumber}* como numero de contacto.`)
-    return gotoFlow(_provideFirstTimeNameFlow)
+        const choosenNumber = ctx.from
+        const choosenContactNumber = ctx.from
+        state.update({ choosenNumber, choosenContactNumber })
+    
+        await flowDynamic(`Haz seleccionado el numero *${choosenContactNumber}* como numero de contacto.`)
+        return gotoFlow(_provideFirstTimeNameFlow)
+    }
+    catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
+        return fallBack(e.message)
+    }
 })
 
 export const _provideManualContactNumber = addKeyword(EVENTS.ACTION)
 .addAction(async (_, {flowDynamic}) => {
     const message = `*¿Cual es el numero de telefono que quieres utilizar como numero de contacto?*`
-    const hint = `\n\n_Escribe el numero de telefono que deseas utilizar como numero de contacto_`
+    
+    const hint = `\n\n_❕ Escribe el numero de telefono que deseas utilizar como numero de contacto_`
+    + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, { flowDynamic, fallBack, state, gotoFlow }) => {
+.addAction({capture: true}, async (ctx, { flowDynamic, fallBack, state, gotoFlow, endFlow}) => {
     try {
         const choosenNumber = Validator.getNumber(ctx.body)
         state.update( { choosenNumber })
@@ -273,6 +304,7 @@ export const _provideManualContactNumber = addKeyword(EVENTS.ACTION)
         return gotoFlow(_provideFirstTimeNameFlow)
     }
     catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
@@ -281,15 +313,23 @@ export const _provideManualContactNumber = addKeyword(EVENTS.ACTION)
 export const _provideFirstTimeNameFlow = addKeyword(EVENTS.ACTION)
 .addAction(async (_, { flowDynamic }) => {
     const message = `*¿Cual es tu nombre?*`
-    const hint = `\n\n_Escribe tu nombre_`
+    const hint = `\n\n_❕ Escribe tu nombre_`
+    + Validator.getCancelHint()
+
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, { flowDynamic, state, gotoFlow }) => {
-    const choosenName = ctx.body
-    state.update({ choosenName })
-    await flowDynamic(`Haz establecido tu nombre como: *${choosenName}*`)
-
-    return gotoFlow(_provideFirstTimeCountryStateFlow)
+.addAction({capture: true}, async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow}) => {
+    try {
+        const choosenName = ctx.body
+        state.update({ choosenName })
+        await flowDynamic(`Haz establecido tu nombre como: *${choosenName}*`)
+    
+        return gotoFlow(_provideFirstTimeCountryStateFlow)
+    }
+    catch (e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
+        return fallBack(e.message)
+    }
 })
 
 
@@ -297,36 +337,51 @@ export const _provideFirstTimeNameFlow = addKeyword(EVENTS.ACTION)
 export const _provideFirstTimeCountryStateFlow = addKeyword(EVENTS.ACTION)
 .addAction(async (_, { flowDynamic }) => {
     const message = `*¿A que estado perteneces dentro de los Estados Unidos? 🇺🇸*`
-    const hint = `\n\n_Escribe tu estado dentro de los Estados Unidos_`
+    
+    const hint = `\n\n_❕ Escribe tu estado dentro de los Estados Unidos_`
+    + Validator.getCancelHint()
+
     return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, { flowDynamic, state, gotoFlow }) => {
-    const choosenCountryState = ctx.body
-    state.update({ choosenCountryState })
-    await flowDynamic(`Haz establecido tu estado como: *${choosenCountryState}*`)
-
-    return gotoFlow(_confirmPersonalInformation)
+.addAction({capture: true}, async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+    try {
+        const choosenState = ctx.body
+        const choosenCountry = 'USA'
+        state.update({ choosenState, choosenCountry })
+        await flowDynamic(`Haz establecido tu estado como: *${choosenState}*`)
+    
+        return gotoFlow(_confirmPersonalInformation)
+    }
+    catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
+        return fallBack(e.message)
+    }
 })
 
 export const _confirmPersonalInformation = addKeyword(EVENTS.ACTION)
 .addAction(async (_, { flowDynamic, state }) => {
     const currentState = <UserData>state.getMyState()
     
-    const message = `*Estos datos son correctos?*`
+    const message = `*✏️ Verifica la información ingresada*`
     + '\n'
-    + `*\nNombre: *${currentState.choosenName}`
-    + `\nEstado: *${currentState.choosenCountryState}*`
-    + `\nNumero de contacto: *${currentState.choosenNumber}*`
-    + '\n'
+    + `\nNombre: *${currentState.choosenName}*`
+    + `\nPais: *${currentState.choosenCountry}*`
+    + `\nEstado: *${currentState.choosenState}*`
+    + `\nNumero de contacto: *${currentState.choosenContactNumber}*`
+    + "\n\n"
+    + "¿Estos datos son correctos?"
+    + '\n\n'
     + ['Si', 'No'].map((option, index) => `*${index+1}*. ${option}`).join('\n')
 
     const hint = "\n"
-    + "\n_Escribe *1* para confirmar_"
-    + "\n_Escribe *2* para volver a seleccionar_"
+    + "\n*Opciones:*\n"
+    + "\n_1️⃣ Escribe 1 para confirmar los datos._"
+    + "\n_2️⃣ Escribe 2 para corregirlos._"
+    + Validator.getCancelHint()
 
     return await flowDynamic(message+hint)
 })
-.addAction({capture: true}, async (ctx, { flowDynamic, fallBack, gotoFlow, state }) => {
+.addAction({capture: true}, async (ctx, { flowDynamic, fallBack, gotoFlow, state, endFlow }) => {
     try {
         if (!Validator.isAgree(ctx.body)) {
             flowDynamic('Entiendo, te pedire tu informacion nuevamente.')
@@ -342,6 +397,8 @@ export const _confirmPersonalInformation = addKeyword(EVENTS.ACTION)
             const payload: CreateCustomerPayload = {
                 name: currentState.choosenName,
                 number: currentState.choosenNumber,
+                country: currentState.choosenCountry,
+                state: currentState.choosenState,
                 role: 'customer'
             }
             customer = await CustomerAPI.create(payload)
@@ -350,16 +407,19 @@ export const _confirmPersonalInformation = addKeyword(EVENTS.ACTION)
             const payload: UpdateCustomerPayload = {
                 id: currentState.customer.id,
                 name: currentState.choosenName,
-                number: currentState.choosenNumber
+                number: currentState.choosenNumber,
+                country: currentState.choosenCountry,
+                state: currentState.choosenState,
             }
 
             customer = await CustomerAPI.update(payload)
         }
 
         state.update( { customer })
-
         return gotoFlow(_resumenFlow)
+
     }catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
         return fallBack(e.message)
     }
 })
@@ -369,44 +429,114 @@ export const _resumenFlow = addKeyword(EVENTS.ACTION)
 .addAction(async (_, { flowDynamic, state }) => {
     const currentState = <UserData>state.getMyState()
 
-    const message = `*¿Desea proceder con su compra?*`
+    const message = `*¿Desea proceder con su compra?* 🛒`
     + `\n\n`
-    + `Nombre: *${currentState.choosenName}*\n`
-    + `Estado: *${currentState.choosenCountryState}*\n`
-    + `Numero de contacto: *${currentState.choosenNumber}*\n`
-    + `Cantidad de boletos: *${currentState.choosenTicketAmount}*\n`
+    //+ `Nombre: *${currentState.choosenName}*\n`
+    //+ `Estado: *${currentState.choosenCountryState}*\n`
+    //+ `Numero de contacto: *${currentState.choosenNumber}*\n`
+    + `Sorteo: *${currentState.choosenRaffle.name}*`
     + `\n`
+    + `Cantidad de boletos: *${currentState.choosenTicketAmount}*`
+    + `\n\n`
+    + `Numero de boletos: \n_*${currentState.choosenTickets.join(" ")}*_`
+    + `\n\n`
     + `Total: *${currentState.choosenRaffle.pricePeerTicket * currentState.choosenTicketAmount} USD*`
     + `\n\n`
     + ['Si', 'No'].map((option, index) => `*${index+1}*. ${option}`).join('\n')
 
-    return await flowDynamic(message)
+    const hint = "\n"
+    + "\n*Opciones:*\n"
+    + "\n1️⃣ Escribe *1* para proceder con la compra"
+    + "\n2️⃣ Escribe *2* para cancelar la compra"
+
+    return await flowDynamic(message + hint)
 })
-.addAction({capture: true}, async (ctx, {flowDynamic, state}) => {
-    if (!Validator.isAgree(ctx.body)) {
-        return await flowDynamic('La compra ha sido cancelada.')
+.addAction({capture: true}, async (ctx, {flowDynamic, state, fallBack, endFlow}) => {
+    try {
+        if (!Validator.isAgree(ctx.body)) {
+            return await flowDynamic('La compra ha sido cancelada.')
+        }
+    
+        const currentState = <UserData>state.getMyState()
+        const customer = currentState.customer
+        const chatbotUser = await AuthAPI.getMe()
+    
+        const payload: CreateOrderPayload = {
+            raffleId: currentState.choosenRaffle.id,
+            userId: customer.id, 
+            tickets: currentState.choosenTickets,
+            total: currentState.choosenRaffle.pricePeerTicket * currentState.choosenTicketAmount,
+            paymentMethod: 'Paypal',
+            assistedBy: chatbotUser.id
+        }
+    
+        const order = await OrderAPI.create(payload)
+        const checkoutURL = `${PAGE_URL}/checkout/${order.id}`
+    
+        return await flowDynamic([
+            'Perfecto',
+            'Completa el pago de tu compra en el siguiente enlace:',
+            checkoutURL
+        ])
     }
-
-    const currentState = <UserData>state.getMyState()
-    const customer = currentState.customer
-
-    const chatbotUser = await AuthAPI.getMe()
-
-    const payload: CreateOrderPayload = {
-        raffleId: currentState.choosenRaffle.id,
-        userId: customer.id, 
-        tickets: currentState.choosenTickets,
-        total: currentState.choosenRaffle.pricePeerTicket * currentState.choosenTicketAmount,
-        paymentMethod: 'Paypal',
-        assistedBy: chatbotUser.id
+    catch(e) {
+        if (e instanceof ConversactionAbort) return endFlow(e.message)
+        return fallBack(e.message)
     }
+    
+})
 
-    const order = await OrderAPI.create(payload)
-    const checkoutURL = `${PAGE_URL}/checkout/${order.id}`
+export const _orderCompletedFlow = addKeyword(utils.setEvent('ORDER_COMPLETED'))
+.addAction(async (ctx, { flowDynamic }) => {
+    try {
+        const task = <Task>ctx.task
 
-    return await flowDynamic([
-        'Perfecto',
-        'Completa el pago de tu compra en el siguiente enlace:',
-        checkoutURL
-    ])
+        for (let i=0; i<=task.subTasks.length-1; i++) {
+            const subTask = task.subTasks[i]
+    
+            if (subTask.status != TaskStatus.PENDING) continue 
+    
+            if (i == 0) {
+                await flowDynamic("Tu pago ha sido completado exitosamente. En breve recibiras tus boletos.")
+            }
+    
+            const ticket = await TicketAPI.get(subTask.ticketId)
+            const caption = `Boleto: *${ticket.serial}*`
+            const buffer = await TicketAPI.getReceiptBuffer(ticket.id)
+            const filePath = path.join(process.cwd(), 'temp.png')
+            writeFileSync(filePath, <any>buffer)
+    
+            await flowDynamic([{
+                body: caption,
+                media: filePath
+            }])
+
+            subTask.status = TaskStatus.COMPLETED
+
+            const payload: UpdateSubTaskPayload = {
+                id: subTask.id,
+                status: subTask.status
+            }
+
+            await SubTaskAPI.update(payload)
+
+            console.log('Subtask completed successfully.')
+        }
+
+        const isTaskCompleted = task.subTasks.length > 0 &&
+        task.subTasks.every(sub => sub.status === TaskStatus.COMPLETED);
+
+        if (isTaskCompleted) {
+            const payload: UpdateTaskPayload = {
+                id: task.id,
+                status: TaskStatus.COMPLETED,
+            }
+            await TaskAPI.update(payload)
+
+            console.log('Task completed successfully.')
+        }
+    }
+    catch (e) {
+        console.log(`Something went wrong while trying to complete a task. ${String(e)}`)
+    }
 })
