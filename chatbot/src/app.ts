@@ -10,17 +10,21 @@ import {
     _chooseTicketTypeFlow,
     _chooseManualTicketFlow,
     _chooseGeneratedTicketFlow,
+    _confirmChoosenTickets,
     _provideFirstTimeCountryStateFlow,
     _provideFirstTimeNameFlow,
     _provideFirstTimeNumberFlow,
     _provideManualContactNumber,
     _providePersonalInformation,
     _confirmPersonalInformation,
-    _resumenFlow
+    _resumenFlow,
+    _orderCompletedFlow
 
 } from './flow/buy-ticket.flow.js'
 import { Task } from './util/tasks.type.js'
 import { OrderAPI } from './util/order.api.js'
+import { TaskPoller } from './util/task-poller.js'
+import { faqFlow } from './flow/faq.flow.js'
 
 const PORT = process.env.PORT ?? 3008
 
@@ -34,12 +38,15 @@ const main = async () => {
         _chooseTicketTypeFlow,
         _chooseGeneratedTicketFlow,
         _chooseManualTicketFlow,
+        _confirmChoosenTickets,
         _providePersonalInformation,
         _provideFirstTimeCountryStateFlow,
         _provideFirstTimeNameFlow,
         _provideFirstTimeNumberFlow,
         _confirmPersonalInformation,
-        _resumenFlow
+        _resumenFlow,
+        _orderCompletedFlow,
+        faqFlow
     ])
     
     const adapterProvider = createProvider(Provider, {
@@ -58,24 +65,23 @@ const main = async () => {
     adapterProvider.server.post(
         '/webhook',
         handleCtx(async (bot, req, res) => {
-            const task = <Task>req.body
+            try {
+                const task = <Task>req.body
+                const order = await OrderAPI.get(task.orderId, { user: true })
+                const customer = order.user
 
-            const orderId = <string>task.orderId
-            const order = await OrderAPI.get(orderId, {tickets: true, user: true})
-            const customer = order.user
-            const tickets = order.tickets
+                await bot.dispatch('ORDER_COMPLETED', {
+                    from: customer.number, 
+                    name: customer.name,
+                    task: task
+                })
 
-            const confirmMessage = `Tu compra ha sido completada exitosamente`
-            await bot.provider.sendMessage(`+${customer.number}`, confirmMessage)
-
-            for (const ticket of tickets) {
-                const ticketImageUrl = ticket.id
-
-                await bot.provider.sendMedia(`+${customer.number}`, ticketImageUrl, ticket.serial)
+                res.writeHead(200, { 'Content-Type': 'application/json' })
+                return res.end(JSON.stringify({ status: 'ok' }))
             }
-
-            res.writeHead(200, { 'Content-Type': 'application/json' })
-            return res.end(JSON.stringify({ status: 'ok' }))
+            catch(e) {
+                console.log(e)
+            }
         })
     )
     
@@ -118,6 +124,8 @@ const main = async () => {
             return res.end(JSON.stringify({ status: 'ok', number, intent }))
         })
     )
+
+    TaskPoller.start()
 
     httpServer(+PORT)
 }
