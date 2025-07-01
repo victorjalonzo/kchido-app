@@ -15,6 +15,11 @@ export class CustomerAPI {
         return customer
     }
 
+    static get = async (id: string, query?: Record<string, string> | Record<string, boolean>) => {
+        const customer = <Customer>await fetchAPI(`${endpoint}/${id}`, {}, query)
+        return customer;
+    }
+
     static getAll = async (query?: Record<string, string> | Record<string, boolean>): Promise<Customer[]> => {
         const customers = <Customer[]>await fetchAPI(`${endpoint}`, {}, query ?? {role: 'customer'})
         return customers
