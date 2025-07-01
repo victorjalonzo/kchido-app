@@ -12,7 +12,8 @@ import { FindRaffleDto } from "../application/find-raffle.dto";
 @Controller('api/v1/raffles')
 export class RaffleController {
     validFilters = ['createdBy', 'status', 'visibility']
-    validIncludes = ['orders', 'tickets', 'subscribers', 'winnerNumbers']
+    publicValidIncludes = ['winnerNumbers']
+    privateValidIncludes = ['participants', 'orders', 'tickets']
 
     constructor(private readonly service: RaffleService){}
 
@@ -22,7 +23,7 @@ export class RaffleController {
 
         const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
             validFilters: this.validFilters,
-            validIncludes: this.validIncludes
+            validIncludes: this.publicValidIncludes
         })
 
         return await this.service.findPublicMany(includeQueries)
@@ -34,7 +35,7 @@ export class RaffleController {
 
         const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
             validFilters: this.validFilters,
-            validIncludes: this.validIncludes
+            validIncludes: this.publicValidIncludes
         })
 
         return await this.service.findPublicOne(id, includeQueries)
@@ -51,7 +52,7 @@ export class RaffleController {
     @UseGuards(JwtAuthGuard)
     @UsePipes(new ValidationPipe({transform: true}))
     @Put()
-    async update(@Body() updateRaffleDto: UpdateRaffleDTO, @Req() req: Request){
+    async update(@Body() updateRaffleDto: UpdateRaffleDTO){
         return await this.service.update(updateRaffleDto)
     }
 
@@ -61,7 +62,7 @@ export class RaffleController {
     async findMany(@Query() findRaffleDto: FindRaffleDto){
         const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
             validFilters: this.validFilters,
-            validIncludes: this.validIncludes
+            validIncludes: this.privateValidIncludes.concat(this.publicValidIncludes)
         })
         
         return await this.service.findMany(filterQueries, includeQueries)
@@ -73,7 +74,7 @@ export class RaffleController {
     async findOne(@Param('id') id: string, @Query() findRaffleDto: FindRaffleDto){
         const { includeQueries } = QueryRequestExtractor.extract(findRaffleDto, {
             validFilters: this.validFilters,
-            validIncludes: this.validIncludes
+            validIncludes: this.privateValidIncludes.concat(this.publicValidIncludes)
         })
 
         return await this.service.findById(id, includeQueries)
