@@ -55,52 +55,60 @@ export class RaffleService {
         private readonly winnerNumberService: WinnerNumberService
     ) {}
 
+    addParticipant = async (raffleId: string, userId: string, options: {transaction: PrismaClient}) => {
+        const transaction = options.transaction
+        return await transaction.raffles.update({
+            where: {id: raffleId},
+            data: {participants: {connect: {id: userId}}}
+        })
+    }
+
     create = async (dto: CreateRaffleDTO): Promise<Raffle> => {
         if (typeof dto.endsAt == 'string') dto.endsAt = new Date(dto.endsAt)
+        dto.shortId = RaffleShortIdGenerator.generate()
+        
         const {image, ...data} = dto
 
-        dto.shortId = RaffleShortIdGenerator.generate()
-
-        return await this.repository.create(this.model, dto)
+        return await this.repository.create(this.model, data)
         .then(async (record) => {
-            const raffle = image
+            return image
             ? await this.update({id: record.id, image, ...data})
             : RaffleMapper.toDomain(record)
-
-            return raffle
         })
     }
 
     update = async (dto: UpdateRaffleDTO): Promise<Raffle> => {
         if (typeof dto.endsAt == 'string') dto.endsAt = new Date(dto.endsAt)
 
-        const {winnerNumbers, ...updateDTO} = dto
+        if (dto?.status == RaffleStatus.ENDED) return await this.finalize(dto)
+        if (dto.image) dto.image = RaffleImageUploader.save(dto.id, dto.image)
 
-        if (updateDTO.image) {
-            updateDTO.image = RaffleImageUploader.save(dto.id, updateDTO.image,)
-        }
-
-        return await this.repository.update(this.model, updateDTO, {id: dto.id})
+        return await this.repository.update(this.model, dto, {id: dto.id})
         .then(async record => {
             if (!record) throw new RaffleNotFoundException()
-            const raffle = RaffleMapper.toDomain(record)
-            const winnerNumberList: WinnerNumber[] = []
-
-            if (winnerNumbers) {
-                for (const number of winnerNumbers) {
-                    const winnerNumberDTO: CreateWinnerNumberDTO = {
-                        serial: number,
-                        raffleId: raffle.id
-                    }
-
-                    await this.winnerNumberService.create(winnerNumberDTO)
-                    .then(winnerNumber => winnerNumberList.push(winnerNumber))
-                }
-            }
-            raffle.winnerNumbers = winnerNumberList
-
-            return raffle
+            return RaffleMapper.toDomain(record)
         })
+    }
+
+    finalize = async (dto: UpdateRaffleDTO): Promise<Raffle> => {
+        const {winnerNumbers, ...data} = dto
+
+        if (!winnerNumbers) throw new Error('Winner numbers empty')
+
+        const record = await this.repository.transaction(async (tx) => {
+            const record = tx[this.model].update({ 
+                where: {id: dto.id}, 
+                data: {status: RaffleStatus.ENDED, ...data} 
+            })
+
+            const winnerNumberDtos: CreateWinnerNumberDTO[] = winnerNumbers.map(number => (
+                { raffleId: dto.id, serial: number}
+            ))
+            await this.winnerNumberService.createMany(winnerNumberDtos, { transaction: tx })
+
+            return record;
+        })
+        return await this._findOne({ id: record.id }, { winnerNumbers: true })
     }
 
     findPublicOne = async (id: string, includes?: RaffleIncludeOptions) => {
