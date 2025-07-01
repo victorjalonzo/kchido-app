@@ -49,11 +49,37 @@ const refreshToken = async () => {
   })
 }
 
+type ReturnTypeFromResponse<T, R> =
+  R extends 'blob' ? Blob :
+  R extends 'buffer' ? ArrayBuffer :
+  T;
+
+export async function fetchAPI<T = any>(
+  endpoint: string,
+  options?: RequestInit,
+  query?: Record<string, string> | Record<string, boolean>,
+): Promise<T>;
+
+export async function fetchAPI<T>(
+  endpoint: string,
+  options: RequestInit,
+  query: Record<string, string> | Record<string, boolean> | undefined,
+  responseType: 'blob'
+): Promise<Blob>;
+
+export async function fetchAPI<T>(
+  endpoint: string,
+  options: RequestInit,
+  query: Record<string, string> | Record<string, boolean> | undefined,
+  responseType: 'buffer'
+): Promise<ArrayBuffer>;
+
 export async function fetchAPI<T>(
   endpoint: string, 
   options: RequestInit = {}, 
-  query?: Record<string, string> | Record<string, boolean>
-): Promise<T> {
+  query?: Record<string, string> | Record<string, boolean>,
+  responseType: 'json' | 'blob' | 'buffer' = 'json'
+): Promise<ReturnTypeFromResponse<T, typeof responseType>> {
   let triesCount = 1
 
   const botToken = BotTokenStore.getInstance()
@@ -82,6 +108,14 @@ export async function fetchAPI<T>(
     throw new Error(error.message || "An error occurred")
   }
 
-  return await response.json()
+  switch(responseType) {
+    case 'json': return await response.json()
+    case 'blob': return await response.blob()
+
+    case 'buffer': 
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(new Uint8Array(arrayBuffer));
+      return buffer;
+  }
 }
 
