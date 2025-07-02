@@ -84,7 +84,7 @@ export function useTicketOrder() {
   }, [ticketAmount, ticketSelectionMethod, selectedRaffle])
 
   const handleTicketNumberChange = (idx: number, value: string) => {
-    const clean = value.replace(/\D/g, "").slice(0, 8)
+    const clean = value.replace(/\D/g, "").slice(0, 6)
     setTicketNumbers(prev => {
       const next = [...prev]
       next[idx] = clean
@@ -93,7 +93,7 @@ export function useTicketOrder() {
   }
 
   const areAllTicketNumbersValid = () =>
-    ticketSelectionMethod === "generate" || ticketNumbers.every(n => n.length === 8)
+    ticketSelectionMethod === "generate" || ticketNumbers.every(n => n.length === 6)
 
   const generateTicketNumbers = (count: number, raffleId: string) =>
     Array.from({ length: count }, (_, i) => `${RandomSerial.generate(6)}`)
@@ -125,7 +125,7 @@ export function useTicketOrder() {
       tickets: Array.isArray(ticketNumbers) ? ticketNumbers : [ticketNumbers],
       userId: selectedCustomer,
       status: 'completed',
-      paymentMethod: 'efectivo',
+      paymentMethod: 'Efectivo',
       assistedBy: (user as User).id
     }
 

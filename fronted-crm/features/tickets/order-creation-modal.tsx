@@ -72,7 +72,7 @@ export default function OrderCreationModal({ children }: { children: React.React
           <DialogDescription>
             {step === 1 && "Seleccione un sorteo y especifique el número de boletos."}
             {step === 2 && "Elija cómo seleccionar los números de boletos."}
-            {step === 3 && "Asigna los tickets a un cliente."}
+            {step === 3 && "Asigna los boletos a un cliente."}
           </DialogDescription>
         </DialogHeader>
 
@@ -148,7 +148,7 @@ export default function OrderCreationModal({ children }: { children: React.React
               <RadioGroup value={ticketSelectionMethod} onValueChange={setTicketSelectionMethod}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="generate" id="generate" />
-                  <Label htmlFor="generate">Generar números de tickets aleatorios</Label>
+                  <Label htmlFor="generate">Generar números de boletos aleatorios</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="manual" id="select" />
@@ -159,7 +159,7 @@ export default function OrderCreationModal({ children }: { children: React.React
 
             {ticketSelectionMethod === "manual" && (
               <div className="space-y-2">
-                <Label>Introduzca números de boletos de 8 dígitos</Label>
+                <Label>Introduzca números de boletos de 6 dígitos</Label>
                 <div className="max-h-[250px] space-y-2 overflow-y-auto rounded-md border p-4">
                   {Array.from({ length: Number.parseInt(ticketAmount) }, (_, index) => (
                     <div key={index} className="mb-2">
@@ -170,23 +170,23 @@ export default function OrderCreationModal({ children }: { children: React.React
                         id={`ticket-${index}`}
                         value={ticketNumbers[index] || ""}
                         onChange={(e) => handleTicketNumberChange(index, e.target.value)}
-                        placeholder="Enter 8-digit number"
-                        maxLength={8}
+                        placeholder="Introduzca un numero de 6 digitos"
+                        maxLength={6}
                         className="font-mono"
                       />
-                      {ticketNumbers[index] && ticketNumbers[index].length !== 8 && (
-                        <p className="mt-1 text-xs text-destructive">Debe tener exactamente 8 dígitos</p>
+                      {ticketNumbers[index] && ticketNumbers[index].length !== 6 && (
+                        <p className="mt-1 text-xs text-destructive">Debe tener exactamente 6 dígitos</p>
                       )}
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground">Cada número de boleto debe tener exactamente 8 dígitos</p>
+                <p className="text-sm text-muted-foreground">Cada número de boleto debe tener exactamente 6 dígitos</p>
               </div>
             )}
 
             {ticketSelectionMethod === "generate" && (
               <div className="space-y-2">
-                <Label>Vista previa de los tickets generados</Label>
+                <Label>Vista previa de los boletos generados</Label>
                 <div className="max-h-[250px] overflow-y-auto rounded-md border p-4">
                   <ul className="grid grid-cols-2 gap-2">
                     {ticketNumbers.map((ticket, index) => (
@@ -208,7 +208,7 @@ export default function OrderCreationModal({ children }: { children: React.React
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search customers..."
+                placeholder="Buscar cliente..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -236,7 +236,7 @@ export default function OrderCreationModal({ children }: { children: React.React
               )}
             </div>
 
-            <Button onClick={() => setCreateCustomerDialogOpen(true)}>Create Customer</Button>
+            <Button onClick={() => setCreateCustomerDialogOpen(true)}>Crear Cliente</Button>
           </div>
         )}
 
@@ -249,11 +249,11 @@ export default function OrderCreationModal({ children }: { children: React.React
         <DialogFooter className="flex items-center justify-between sm:justify-between">
           {step > 1 ? (
             <Button variant="outline" onClick={() => setStep(step - 1)}>
-              Back
+              Atras
             </Button>
           ) : (
             <Button variant="outline" onClick={handleClose}>
-              Cancel
+              Cancelar
             </Button>
           )}
 
@@ -265,7 +265,7 @@ export default function OrderCreationModal({ children }: { children: React.React
                 (step === 2 && !areAllTicketNumbersValid())
               }
             >
-              Continue
+              Continuar
             </Button>
           ) : (
             <Button
@@ -277,10 +277,10 @@ export default function OrderCreationModal({ children }: { children: React.React
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Creando...
                 </>
               ) : (
-                "Create Order"
+                "Crear Orden"
               )}
             </Button>
           )}
