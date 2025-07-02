@@ -11,6 +11,7 @@ import {
     _chooseManualTicketFlow,
     _chooseGeneratedTicketFlow,
     _confirmChoosenTickets,
+    _provideFirstTimeCountry,
     _provideFirstTimeCountryStateFlow,
     _provideFirstTimeNameFlow,
     _provideFirstTimeNumberFlow,
@@ -18,6 +19,7 @@ import {
     _providePersonalInformation,
     _confirmPersonalInformation,
     _resumenFlow,
+    _addGroupFlow,
     _orderCompletedFlow
 
 } from './flow/buy-ticket.flow.js'
@@ -40,12 +42,14 @@ const main = async () => {
         _chooseManualTicketFlow,
         _confirmChoosenTickets,
         _providePersonalInformation,
+        _provideFirstTimeCountry,
         _provideFirstTimeCountryStateFlow,
         _provideFirstTimeNameFlow,
         _provideFirstTimeNumberFlow,
         _confirmPersonalInformation,
         _resumenFlow,
         _orderCompletedFlow,
+        _addGroupFlow,
         faqFlow
     ])
     
