@@ -89,7 +89,7 @@ export default function CustomerForm({ customer, onSubmit, onCancel, isLoading }
 
         <div className="flex-1 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Nombre completo</Label>
             <Input
               id="name"
               name="name"

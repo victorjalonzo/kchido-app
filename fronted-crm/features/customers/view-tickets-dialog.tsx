@@ -120,10 +120,10 @@ export default function ViewTicketsDialog({ open, onOpenChange, customer }: View
                 {tickets.map((ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell className="font-bold">{ticket.serial}</TableCell>
-                    <TableCell>{ticket.id} </TableCell>
+                    <TableCell>{ticket.shortId} </TableCell>
                     <TableCell className="font-bold">{ticket.raffle.name}</TableCell>
-                    <TableCell>{ticket.raffle.id}</TableCell>
-                    <TableCell>{ticket.order.id}</TableCell>
+                    <TableCell>{ticket.raffle.shortId}</TableCell>
+                    <TableCell>{ticket.order.shortId}</TableCell>
                     <TableCell>{ticket.order.paymentMethod}</TableCell>
                     <TableCell>{formatDate(ticket.order?.createdAt)}</TableCell>
                   </TableRow>

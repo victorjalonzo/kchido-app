@@ -8,7 +8,7 @@ export interface Customer {
     number: string | null
     email: string | null
     status: 'active' | 'banned'
-    createdAt: Date
+    createdAt: string
 
     tickets?: Ticket[]
 }

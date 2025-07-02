@@ -3,13 +3,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Badge } from "@/shared/components/ui/badge"
-import type { User } from "@/shared/lib/types"
 import { Asset } from "@/shared/lib/asset"
+import { Customer } from "./types/customer.type"
 
 interface ViewCustomerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  customer: User | null
+  customer: Customer | null
 }
 
 export default function ViewCustomerDialog({ open, onOpenChange, customer }: ViewCustomerDialogProps) {
@@ -61,13 +61,13 @@ export default function ViewCustomerDialog({ open, onOpenChange, customer }: Vie
             </div>
             <div className="space-y-1">
               <p className="text-sm text-muted-foreground">Boletos comprados</p>
-              <p className="font-medium">{customer.tickets || 0}</p>
+              <p className="font-medium">{customer.tickets?.length || 0}</p>
             </div>
           </div>
 
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">ID de cliente</p>
-            <p className="font-mono text-sm">{customer.id}</p>
+            <p className="font-mono text-sm">{customer.shortId}</p>
           </div>
         </div>
       </DialogContent>

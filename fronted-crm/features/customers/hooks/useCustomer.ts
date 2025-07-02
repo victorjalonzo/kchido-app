@@ -1,10 +1,10 @@
-import { User } from "@/shared/lib/types"
 import { useEffect, useState } from "react"
 import { CustomerAPI } from "../api/customer-api"
+import { Customer } from "../types/customer.type"
 
 export function useCustomers() {
-  const [customers, setCustomers] = useState<User[]>([])
-  const [filteredCustomers, setFilteredCustomers] = useState<User[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([])
 
   // Filters
   const [filters, setFilters] = useState({
@@ -21,10 +21,10 @@ export function useCustomers() {
   const [ticketsDialogOpen, setTicketsDialogOpen] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
-  const [selectedCustomer, setSelectedCustomer] = useState<User | null>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
 
   /* ──────────────── Filter and Orden ──────────────── */
-  const applyFilters = (customersList: User[], currentFilters: typeof filters) => {
+  const applyFilters = (customersList: Customer[], currentFilters: typeof filters) => {
     let result = [...customersList]
 
     // Search
@@ -68,13 +68,13 @@ export function useCustomers() {
   }
 
   /* ──────────────── CRUD local ──────────────── */
-  const handleCustomerCreated = (newCustomer: User) => {
+  const handleCustomerCreated = (newCustomer: Customer) => {
     const updated = [newCustomer, ...customers]
     setCustomers(updated)
     applyFilters(updated, filters)
   }
 
-  const handleCustomerUpdated = (updatedCustomer: User) => {
+  const handleCustomerUpdated = (updatedCustomer: Customer) => {
     const updated = customers.map(c => (c.id === updatedCustomer.id ? updatedCustomer : c))
     setCustomers(updated)
     applyFilters(updated, filters)
@@ -87,33 +87,33 @@ export function useCustomers() {
   }
 
   /* ──────────────── Actions / Dialogs ──────────────── */
-  const handleViewCustomer = (customer: User) => {
+  const handleViewCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     setViewDialogOpen(true)
   }
 
-  const handleEditCustomer = (customer: User) => {
+  const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     setEditDialogOpen(true)
   }
 
-  const handleViewTickets = (customer: User) => {
+  const handleViewTickets = (customer: Customer) => {
     setSelectedCustomer(customer)
     setTicketsDialogOpen(true)
   }
 
-  const handleBanCustomer = (customer: User) => {
+  const handleBanCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     setBanDialogOpen(true)
   }
 
-  const handleDeleteCustomer = (customer: User) => {
+  const handleDeleteCustomer = (customer: Customer) => {
     setSelectedCustomer(customer)
     setDeleteDialogOpen(true)
   }
 
   /* ──────────────── Toggle active/banned ──────────────── */
-  const handleToggleStatus = (customer: User) => {
+  const handleToggleStatus = (customer: Customer) => {
     const newStatus = customer.status === "active" ? "banned" : "active"
     const updatedCustomer = { ...customer, status: newStatus as "active" | "banned" }
     const updated = customers.map(c => (c.id === customer.id ? updatedCustomer : c))
@@ -124,7 +124,7 @@ export function useCustomers() {
   /* ──────────────── Effects ──────────────── */
   useEffect(() => {
     const fetchCustomers = async () => {
-      const data = await CustomerAPI.getAll()
+      const data = await CustomerAPI.getAll({ tickets: true })
       setCustomers(data)
       setFilteredCustomers(data)
     }

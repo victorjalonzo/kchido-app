@@ -6,16 +6,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/shared/components/ui/badge"
 import { MoreHorizontal, Edit, Trash, Ban, Ticket, Eye } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
-import type { User } from "@/shared/lib/types"
+//import type { User } from "@/shared/lib/types"
 import { Asset } from "@/shared/lib/asset"
+import { Customer } from "./types/customer.type"
 
 interface CustomersListProps {
-  customers: User[]
-  onViewCustomer: (customer: User) => void
-  onEditCustomer: (customer: User) => void
-  onViewTickets: (customer: User) => void
-  onBanCustomer: (customer: User) => void
-  onDeleteCustomer: (customer: User) => void
+  customers: Customer[]
+  onViewCustomer: (customer: Customer) => void
+  onEditCustomer: (customer: Customer) => void
+  onViewTickets: (customer: Customer) => void
+  onBanCustomer: (customer: Customer) => void
+  onDeleteCustomer: (customer: Customer) => void
 }
 
 export function CustomersList({
@@ -68,7 +69,7 @@ export function CustomersList({
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{customer.number}</TableCell>
                 <TableCell className="hidden lg:table-cell">{formatDate(customer.createdAt)}</TableCell>
-                <TableCell className="hidden sm:table-cell">{customer.tickets}</TableCell>
+                <TableCell className="hidden sm:table-cell">{customer.tickets?.length}</TableCell>
                 <TableCell>           
                   <Badge variant={customer.status === "active" ? "default" : "destructive"}>
                     {customer.status == 'active' ? 'Activo' : 'Baneado'}

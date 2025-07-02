@@ -1,11 +1,13 @@
 import { fetchAPI } from "@/shared/lib/api"
 import { Customer } from "../types/customer.type"
 import { ImageFormat } from "@/shared/lib/formatImage"
+import { Config } from "@/shared/config"
 
 const endpoint = '/users'
+const fullEndpoint = `${Config.apiURL}${endpoint}`
 
 const formatCustomer = (customer:Customer) => {
-    if (customer.image) customer.image = ImageFormat(customer.image)
+    //if (customer.image) customer.image = `${fullEndpoint}/${customer.id}/profile`
     return customer
 }
 
@@ -20,8 +22,8 @@ export class CustomerAPI {
         return formatCustomer(customer)
     }
 
-    static getAll = async (): Promise<Customer[]> => {
-        const customers = <Customer[]>await fetchAPI(`${endpoint}?role=customer`)
+    static getAll = async (query?: Record<string, any>): Promise<Customer[]> => {
+        const customers = <Customer[]>await fetchAPI(`${endpoint}`, {}, {role: 'customer', ...query})
         return customers.map(customer => formatCustomer(customer));
     }
 
