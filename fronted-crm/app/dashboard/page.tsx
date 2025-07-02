@@ -553,8 +553,8 @@ export default function Dashboard() {
             <CardTitle>Rendimiento empresarial</CardTitle>
             <CardDescription>
               {selectedFilter.type !== "all-time"
-                ? `Performance breakdown for ${selectedFilter.label}`
-                : "Orders, revenue, and customer growth over time"}
+                ? `Desglose de rendimiento para ${selectedFilter.label}`
+                : "Órdenes, ingresos y crecimiento de clientes a lo largo del tiempo"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -650,7 +650,7 @@ export default function Dashboard() {
               </CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/orders">Ver todo</Link>
+              <Link href="/dashboard/orders">Ver todo</Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -674,7 +674,7 @@ export default function Dashboard() {
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-muted-foreground">
-                          {order.id} • {order.tickets.length} boletos
+                          {order.shortId} • {order.tickets.length} boletos
                         </p>
                         <Badge variant={getStatusVariant(order.status)}>
                            {
