@@ -12,6 +12,11 @@ export class Config {
         return process.env.NEXT_PUBLIC_SERVER_URL
     }
 
+    static get pageURL(): string {
+        if (!process.env.NEXT_PUBLIC_PAGE_URL) throw Error('Missing PAGE_URL environment variable')
+        return process.env.NEXT_PUBLIC_PAGE_URL
+    }
+
     static get apiURL(): string {
         const serverURL = Config.serverURL
         const apiPrefix = process.env.NEXT_PUBLIC_API_PREFIX

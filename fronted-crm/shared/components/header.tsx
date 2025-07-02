@@ -9,32 +9,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/shared/components/ui/sheet"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/shared/lib/utils"
-import {
-  ShoppingCart,
-  Gift,
-  Users,
-  User,
-  CreditCard,
-  MessageSquare,
-  CheckSquare,
-  BarChart3,
-  Settings,
-} from "lucide-react"
 import { useAuth } from "@/features/auth/auth-provider"
 import { Asset } from "../lib/asset"
+import { sidebarItems } from "../sidebar-items"
 
 // Define sidebar items here to use in mobile menu
-const sidebarItems = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
-  { name: "Raffles", href: "/raffles", icon: Gift },
-  { name: "Orders", href: "/orders", icon: ShoppingCart },
-  { name: "Sellers", href: "/sellers", icon: Users },
-  { name: "Customers", href: "/customers", icon: User },
-  { name: "Payment Providers", href: "/payment-providers", icon: CreditCard },
-  { name: "Chatbot", href: "/chatbot", icon: MessageSquare },
-  { name: "Ticket Validation", href: "/ticket-validation", icon: CheckSquare },
-  { name: "Settings", href: "/settings", icon: Settings },
-]
+
 
 export default function Header() {
   const pathname = usePathname()
@@ -59,6 +39,10 @@ export default function Header() {
 
             <div className="flex-1 px-4 space-y-1">
               {sidebarItems.map((item) => {
+                if (item.require) {
+                  if (!user?.permissions[item.require]) return
+                }
+
                 const isActive = pathname === item.href
                 const Icon = item.icon
 

@@ -1,11 +1,13 @@
+import { Config } from "../config"
 
+const endpoint = `${Config.apiURL}/static`
 
 export class Asset {
     static get defaultProfileImage(){
-        return '/default-profile-image.jpg'
+        return `${endpoint}/default-profile-image.jpg`
     }
 
     static get defaultRaffleImage(){
-        return '/default-raffle-image.png'
+        return `${endpoint}/default-raffle-image.png`
     }
 }

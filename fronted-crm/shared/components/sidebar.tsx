@@ -64,7 +64,7 @@ const sidebarItems = [
     name: "Chatbot", 
     href: "/dashboard/chatbot", 
     icon: MessageSquare, 
-    require: PERMISSIONS.MANAGE_CHATBOTS
+    require: PERMISSIONS.MANAGE_CHATBOT
   },
   { 
     name: "Configuracion", 
