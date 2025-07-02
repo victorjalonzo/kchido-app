@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Raffle, RaffleStatus, RaffleVisibility } from "./types/raffle.type"
 import { Asset } from "@/shared/lib/asset"
 import { ImageFormat } from "@/shared/lib/formatImage"
+import { Config } from "@/shared/config"
 
 interface RafflesListProps {
   raffles: Raffle[]
@@ -51,7 +52,7 @@ export function RafflesList({
             <TableHead>Sorteo</TableHead>
             <TableHead className="hidden md:table-cell">Monto inicial</TableHead>
             <TableHead className="hidden sm:table-cell">Acumulado</TableHead>
-            <TableHead className="hidden lg:table-cell">Concursantes</TableHead>
+            <TableHead className="hidden lg:table-cell">Participantes</TableHead>
             <TableHead className="hidden xl:table-cell">Creado</TableHead>
             <TableHead className="hidden xl:table-cell">Termina</TableHead>
             <TableHead>Visibilidad</TableHead>
@@ -79,7 +80,7 @@ export function RafflesList({
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{formatCurrency(raffle.initialAmount)}</TableCell>
                 <TableCell className="hidden sm:table-cell">{formatCurrency(raffle.accumulated)}</TableCell>
-                <TableCell className="hidden lg:table-cell">{raffle.subscribers}</TableCell>
+                <TableCell className="hidden lg:table-cell">{raffle.participants.length}</TableCell>
                 <TableCell className="hidden xl:table-cell">{formatDate(raffle.createdAt)}</TableCell>
                 <TableCell className="hidden xl:table-cell">{formatDate(raffle.endsAt)}</TableCell>
                 <TableCell>
@@ -95,7 +96,7 @@ export function RafflesList({
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button size="icon" variant="ghost" asChild>
-                      <Link href={raffle.id} target="_blank">
+                      <Link href={`${Config.pageURL}/${raffle.id}`} target="_blank">
                         <ExternalLink className="h-4 w-4" />
                         <span className="sr-only">Ver pagina</span>
                       </Link>

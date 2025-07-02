@@ -130,7 +130,7 @@ export function useRaffles() {
 
   useEffect(() => {
     const fetchData = async () => {
-      await RaffleAPI.getAll().then(raffles => {
+      await RaffleAPI.getAll({ participants: true }).then(raffles => {
         setFilteredRaffles(raffles)
         setRaffles(raffles)
       })
