@@ -19,6 +19,7 @@ export interface Raffle {
     subscribers: number
     status: RaffleStatus
     visibility: RaffleVisibility
+    whatsAppGroupId?: string
     createdBy: string
     createdAt: string
     endsAt: string
@@ -27,4 +28,9 @@ export interface Raffle {
     winnerNumbers?: []
     //tickets?: Ticket[]
     //orders?: Order[]
+}
+
+export interface UpdateRafflePayload {
+  id: string
+  whatsAppGroupId: string 
 }
