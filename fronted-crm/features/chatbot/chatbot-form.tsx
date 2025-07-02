@@ -19,7 +19,7 @@ export default function ChatbotForm() {
     isActive: true,
     name: "KChido Chatbot",
     welcomeMessage: "Bienvenido!",
-    phoneNumber: "+1 (555) 123-4567",
+    phoneNumber: "+19203812314",
   })
 
   const handleSubmit = (e: React.FormEvent) => {
