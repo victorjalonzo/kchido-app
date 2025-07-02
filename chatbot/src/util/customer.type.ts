@@ -14,7 +14,7 @@ export interface CreateCustomerPayload {
     country: string
     state: string 
     number: string
-    email?: string
+    contactNumber: string
     image?: string 
 }
 
@@ -24,6 +24,7 @@ export interface UpdateCustomerPayload {
     state?: string 
     name?: string
     number?: string
+    contactNumber?: string
     email?: string
     image?: string 
 }
