@@ -60,12 +60,46 @@ export default function ViewOrderDialog({ open, onOpenChange, order }: ViewOrder
     }
   }
 
+  const exportTicketsToCSV = () => {
+    if (!order) return
+
+    const headers = ["Boleto", "Sorteo", "Fecha de compra", "Estado"]
+    const rows = order.tickets.map((ticket) => [
+      ticket.serial,
+      order.raffle.name,
+      formatDate(order.createdAt),
+      order.status
+    ])
+
+    const csvContent =
+      [headers, ...rows]
+        .map((row) =>
+          row
+            .map((item) =>
+              `"${String(item).replace(/"/g, '""')}"` // Escapar comillas dobles
+            )
+            .join(",")
+        )
+        .join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement("a")
+    link.href = url
+    link.setAttribute("download", `boletos_${order.id}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Detalles de orden - {order.id}</span>
+            <span>Detalles de orden - {order.shortId}</span>
             <Badge variant={getStatusVariant(order.status)}>
               {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
             </Badge>
@@ -119,10 +153,10 @@ export default function ViewOrderDialog({ open, onOpenChange, order }: ViewOrder
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium">Boletos ({order.tickets.length})</h3>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="sm" onClick={exportTicketsToCSV}>
+              <Download className="h-4 w-4 mr-2" />
                 Exportar boletos
-              </Button>
+            </Button>
             </div>
             <div className="rounded-md border max-h-[300px] overflow-auto">
               <Table>

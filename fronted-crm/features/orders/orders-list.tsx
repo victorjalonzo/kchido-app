@@ -76,7 +76,7 @@ export function OrdersList({ orders, onViewOrder }: OrdersListProps) {
           ) : (
             orders.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id}</TableCell>
+                <TableCell className="font-medium">{order.shortId}</TableCell>
                 <TableCell>{order.user.name}</TableCell>
                 <TableCell className="hidden md:table-cell">{formatDate(order.createdAt)}</TableCell>
                 <TableCell className="hidden sm:table-cell">{order.tickets.length}</TableCell>
