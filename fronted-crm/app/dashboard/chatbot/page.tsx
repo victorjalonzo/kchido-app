@@ -12,7 +12,7 @@ export default function ChatbotPage() {
   //if (!user?.permissions.manageChatbot) window.location.href = '/dashboard'
 
   return (
-    <PermissionGuard permission={PERMISSIONS.MANAGE_CHATBOTS}>
+    <PermissionGuard permission={PERMISSIONS.MANAGE_CHATBOT}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Chatbot</h1>
