@@ -7,13 +7,15 @@ import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"
 import { Upload } from "lucide-react"
-import type { User } from "@/shared/lib/types"
 import { Asset } from "@/shared/lib/asset"
 import { useImageUpload } from "@/shared/hooks/use-image-upload"
 import { Base64 } from "@/shared/lib/base64"
+import { useAuth } from "../auth/auth-provider"
+import { User } from "../auth/user.type"
+import { Customer } from "./types/customer.type"
 
 interface CustomerFormProps {
-  customer?: User
+  customer?: Customer
   onSubmit: (data: CreateCustomerPayload) => void
   onCancel: () => void
   isLoading: boolean
@@ -22,12 +24,15 @@ interface CustomerFormProps {
 export default function CustomerForm({ customer, onSubmit, onCancel, isLoading }: CustomerFormProps) {
   const isEditing = !!customer
 
+  const { user } = useAuth()
+
   const [formData, setFormData] = useState<CreateCustomerPayload>({
     name: "",
     email: "",
     number: "",
     image: undefined,
-    role: 'customer'
+    role: 'customer',
+    creatorId: (user as User).id
   })
 
   const {
@@ -46,7 +51,8 @@ export default function CustomerForm({ customer, onSubmit, onCancel, isLoading }
         email: customer.email || "",
         number: customer.number || "",
         image: customer.image,
-        role: 'customer'
+        role: 'customer',
+        creatorId: (user as User).id
       })
     }
   }, [customer])
