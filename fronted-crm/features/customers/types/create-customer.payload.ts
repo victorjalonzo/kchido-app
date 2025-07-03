@@ -3,5 +3,6 @@ interface CreateCustomerPayload {
     role: 'customer'
     number: string
     email?: string
-    image?: string 
+    image?: string
+    creatorId: string
 }
