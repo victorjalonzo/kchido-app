@@ -38,5 +38,8 @@ export class CreateUserDTO {
     state?: string
 
     @IsOptional() @IsString()
+    creatorId?: string
+
+    @IsOptional() @IsString()
     shortId?: string
 }
