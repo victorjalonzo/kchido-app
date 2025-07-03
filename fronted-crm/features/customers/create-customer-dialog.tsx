@@ -4,13 +4,13 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog"
 import CustomerForm from "./customer-form"
 import { useToast } from "@/shared/components/ui/use-toast"
-import type { User } from "@/shared/lib/types"
 import { CustomerAPI } from "./api/customer-api"
+import { Customer } from "./types/customer.type"
 
 interface CreateCustomerDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCustomerCreated: (customer: User) => void
+  onCustomerCreated: (customer: Customer) => void
 }
 
 export default function CreateCustomerDialog({ open, onOpenChange, onCustomerCreated }: CreateCustomerDialogProps) {
