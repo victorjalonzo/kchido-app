@@ -22,7 +22,8 @@ export interface IncludeUsersRelationValues {
 export interface FindUserFilter {
     id?: string
     role?: UserRole
-    email?: string
+    email?: string,
+    creatorId?: string
 }
 
 export interface UserJoinOptions {
@@ -124,6 +125,27 @@ export class UserService {
         return <User> await this._find(filters, includes)
     }
 
+    findWithScope = async (requesterId: string, filters: FindUserFilter, includes: UserJoinOptions) => {
+        const requester = await this.findById(requesterId)
+        if (requester.isAdmin || requester.isChatbot) return await this.findOne(filters, includes)
+        
+        return await this.findOne({...filters, creatorId: requester.id},  includes)
+    }
+
+    findManyWithScope = async (requesterId: string, filters: FindUserFilter, includes: UserJoinOptions) => {
+        const requester = await this.findById(requesterId)
+        if (requester.isAdmin || requester.isChatbot) return await this._findMany(filters, includes)
+        
+        return await this._findMany({...filters, creatorId: requester.id},  includes)
+    }
+
+    deleteWithScope = async (requesterId: string, id: string) => {
+        const requester = await this.findById(requesterId)
+        if (requester.isAdmin || requester.isChatbot) return await this.delete(id)
+
+        return await this._delete({id, creatorId: requester.id })
+    }
+
     findMany = async (filters: FindUserFilter, includes: UserJoinOptions): Promise<User[]> => {
         return await this._findMany(filters, includes)
     }
@@ -150,5 +172,15 @@ export class UserService {
     _findMany = async (filters?: FindUserFilter, includes?: UserJoinOptions): Promise<User[]> => {
         return await this.repository.findMany(this.model, filters, includes)
         .then((records: (PrismaUser & IncludeUsersRelationValues)[]) => records.map(record => UserMapper.toDomain(record)))
+    }
+
+    _delete = async (filters: FindUserFilter, options?: {keepRawRecord: boolean}): Promise<User | PrismaUser> => {
+        return await this.repository.delete(this.model, filters)
+        .then((record: (PrismaUser & IncludeUsersRelationValues)) => {
+            if (!record) throw new UserNotFoundException()
+            return !options?.keepRawRecord 
+            ? UserMapper.toDomain(record)
+            : record
+        })
     }
 }
