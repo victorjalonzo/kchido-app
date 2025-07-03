@@ -1,11 +1,12 @@
-import {Controller, Get, Post, Param, UsePipes, ValidationPipe, Res, HttpStatus, Query, UseFilters, Body, Delete, Put} from "@nestjs/common"
+import {Controller, Get, Post, Param, UsePipes, ValidationPipe, Res, HttpStatus, Query, UseFilters, Body, Delete, Put, Req, UseGuards} from "@nestjs/common"
 import { UserService } from "../application/user.service"
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { UserExceptionFilter } from "./user-exception.filter";
 import { CreateUserDTO } from "../application/create-user.dto";
 import { UpdateUserDTO } from "../application/update-user.dto";
 import { FindUserDto } from "../application/find-user-dto";
 import { QueryRequestExtractor } from "src/Shared/util/queries-extractor";
+import { JwtAuthGuard } from "src/Auth/infrastructure/jwt-auth.guard";
 
 @UseFilters(UserExceptionFilter)
 @Controller("api/v1/users")
@@ -29,20 +30,20 @@ export class UserController {
     }
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     @UsePipes(new ValidationPipe({transform: true}))
-    async findMany(@Query() findUserDto: FindUserDto) {
+    async findMany(@Query() findUserDto: FindUserDto, @Req() req: Request) {
         const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findUserDto, {
             validFilters: this.validFilters,
             validIncludes: this.validIncludes
         })
 
-        console.log(filterQueries, includeQueries)
-
-        return await this.userService.findMany(filterQueries, includeQueries)
+        return await this.userService.findManyWithScope(req.user.userId, filterQueries, includeQueries)
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string, @Query() findUserDto: FindUserDto) {
+    @UseGuards(JwtAuthGuard)
+    async findOne(@Param('id') id: string, @Query() findUserDto: FindUserDto, @Req() req: Request) {
         const {filterQueries, includeQueries } = QueryRequestExtractor.extract(findUserDto, {
             validFilters: this.validFilters,
             validIncludes: this.validIncludes
@@ -50,7 +51,7 @@ export class UserController {
 
         filterQueries['id'] = id
 
-        return await this.userService.findOne(filterQueries, includeQueries)
+        return await this.userService.findWithScope(req.user.userId, filterQueries, includeQueries)
     }
 
     @Get(':id/profile')
@@ -60,7 +61,8 @@ export class UserController {
     }
 
     @Delete(':id')
-    async delete(@Param('id') id: string) {
-        return await this.userService.delete(id)
+    @UseGuards(JwtAuthGuard)
+    async delete(@Param('id') id: string, @Req() req: Request) {
+        return await this.userService.deleteWithScope(req.user.userId, id)
     }
 }
