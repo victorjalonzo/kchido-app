@@ -97,10 +97,14 @@ export function CustomersList({
                           <Ticket className="h-4 w-4 mr-2" />
                           Ver boletos
                         </DropdownMenuItem>
+
+                        {/*
                         <DropdownMenuItem onClick={() => onBanCustomer(customer)}>
                           <Ban className="h-4 w-4 mr-2" />
                           {customer.status === "active" ? "Ban customer" : "Unban customer"}
                         </DropdownMenuItem>
+                        */}
+
                         <DropdownMenuItem onClick={() => onDeleteCustomer(customer)} className="text-destructive">
                           <Trash className="h-4 w-4 mr-2" />
                           Eliminar cliente
