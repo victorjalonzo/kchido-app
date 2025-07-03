@@ -27,8 +27,11 @@ interface UserProps {
     password: string | null
     permissions: Permission | null
     status: UserStatus | null
+    creatorId?: string | null
     createdAt: Date
 
+    creator?: User
+    createdUsers?: []
     tickets?: Ticket[]
 }
 
@@ -46,8 +49,11 @@ export class User implements UserProps {
     password: string | null
     permissions: Permission | null
     status: UserStatus | null
+    creatorId?: string | null
     createdAt: Date
-    
+
+    creator?: User
+    createdUsers?: []
     tickets?: Ticket[]
 
     constructor(props: UserProps) {
@@ -64,8 +70,11 @@ export class User implements UserProps {
         this.password = props.password
         this.permissions = props.permissions
         this.status = props.status
+        this.creatorId = props.creatorId
         this.createdAt = props.createdAt
         
+        this.creator = props.creator
+        this.createdUsers = props.createdUsers ?? []
         this.tickets = props.tickets ?? []
     }
 
