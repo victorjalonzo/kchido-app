@@ -12,19 +12,23 @@ datasource db {
 }
 
 model Users {
-  id          String       @id @default(uuid())
-  shortId     String 
-  name        String
-  country     String?
-  state       String?
-  email       String?      @unique
-  password    String?
-  number      String?
+  id            String   @id @default(uuid())
+  shortId       String
+  name          String
+  country       String?
+  state         String?
+  email         String?  @unique
+  password      String?
+  number        String?
   contactNumber String?
-  role        String
-  image      String?
-  status      String       @default("active")
-  createdAt   DateTime     @default(now()) @db.Timestamp(6)
+  role          String
+  image         String?
+  status        String   @default("active")
+  creatorId     String?  
+  createdAt     DateTime @default(now()) @db.Timestamp(6)
+
+  creator       Users?   @relation("UserCreator", fields: [creatorId], references: [id])
+  createdUsers  Users[]  @relation("UserCreator")
 
   permissions Permissions?
   
@@ -36,9 +40,10 @@ model Users {
 
   orders         Orders[] @relation("OrderUser")
   assistedOrders Orders[] @relation("OrderAssistant")
-  tasks Tasks[]
-  subTasks SubTasks[]
+  tasks          Tasks[]
+  subTasks       SubTasks[]
 }
+
 
 model Permissions {
   id                   String   @id @default(uuid())
@@ -66,6 +71,7 @@ model Raffles {
   subscribers     Int      @default(0)
   visibility      String   @default("public")
   status          String   @default("ongoing")
+  whatsAppGroupId String? 
   creatorId       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
