@@ -13,7 +13,7 @@ import { QueryRequestExtractor } from "src/Shared/util/queries-extractor";
 @UseFilters(OrderExceptionFilter)
 @Controller('api/v1/orders')
 export class OrderController {
-    validFilters = ['userId', 'raffleId', 'status']
+    validFilters = ['userId', 'raffleId', 'status', 'assistedBy']
     validIncludes = ['user', 'raffle', 'tickets', 'ticketReservations']
 
     constructor(private readonly service: OrderService){}
