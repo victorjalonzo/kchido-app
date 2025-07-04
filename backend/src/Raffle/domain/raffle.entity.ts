@@ -25,6 +25,7 @@ export interface Props {
   subscribers: number,
   status: RaffleStatus,
   visibility: RaffleVisibility,
+  whatsAppGroupId: string | null
   creatorId: string,
   createdAt: Date,
   endsAt: Date,
@@ -49,6 +50,7 @@ export class Raffle implements Props {
   subscribers: number
   status: RaffleStatus
   visibility: RaffleVisibility
+  whatsAppGroupId: string | null
   creatorId: string
   createdAt: Date
   endsAt: Date
@@ -72,6 +74,7 @@ export class Raffle implements Props {
     this.subscribers = props.subscribers
     this.status = props.status
     this.visibility = props.visibility
+    this.whatsAppGroupId = props.whatsAppGroupId
     this.creatorId = props.creatorId
     this.createdAt = props.createdAt
     this.endsAt = props.endsAt
