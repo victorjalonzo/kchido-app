@@ -7,6 +7,7 @@ import { Badge } from "@/shared/components/ui/badge"
 import { MoreHorizontal, Edit, Trash, ShieldAlert } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"
 import type { User } from "@/shared/lib/types"
+import Link from "next/link"
 
 interface SellersListProps {
   sellers: User[]
@@ -65,14 +66,19 @@ export function SellersList({ sellers, onEditSeller, onDeleteSeller }: SellersLi
             sellers.map((seller) => (
               <TableRow key={seller.id}>
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-3">
+                  <Link href={`/dashboard/sellers/${seller.id}`} className="flex items-center gap-3 hover:underline">
                     <div className="relative h-10 w-10 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
                       <Image src={seller.image || "/placeholder.svg"} alt={seller.name} width={40} height={40} />
                     </div>
                     <div>{seller.name}</div>
-                  </div>
+                  </Link>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">{seller.email}</TableCell>
+
+                <TableCell className="hidden md:table-cell">
+                  <Link href={`/dashboard/sellers/${seller.id}`} className="hover:underline">
+                    {seller.email}
+                  </Link>
+                </TableCell>
                 <TableCell className="hidden lg:table-cell">{formatDate(seller.createdAt)}</TableCell>
                 <TableCell>
                 <div className="flex flex-wrap gap-1">
