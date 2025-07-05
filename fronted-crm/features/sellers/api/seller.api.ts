@@ -26,6 +26,11 @@ export class SellerAPI {
         return sellers.map(seller => formattedSeller(seller));
     }
 
+    static get = async (id: string):Promise<User> => {
+        const seller = <User>await fetchAPI(`${endpoint}/${id}`)
+        return formattedSeller(seller)
+    }
+
     static delete = async (id: string) => {
         const seller = <User>await fetchAPI(`${endpoint}/${id}`, {method: 'DELETE'})
         return formattedSeller(seller)
