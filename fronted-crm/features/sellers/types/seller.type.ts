@@ -8,7 +8,8 @@ export interface Permissions {
 }
 
 export interface Seller {
-    id: string 
+    id: string
+    shortId: string
     name: string
     role: 'seller'
     number: string
