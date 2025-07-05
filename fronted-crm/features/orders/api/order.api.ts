@@ -9,7 +9,7 @@ export class OrderAPI {
         return await fetchAPI(endpoint, { method: 'POST', body: JSON.stringify(payload)})
     }
 
-    static getAll = async (query?: Record<string, string> | Record<string, boolean>): Promise<Order[]> => {
+    static getAll = async (query?: Record<string, any>): Promise<Order[]> => {
         return await fetchAPI(endpoint, {}, query)
     }
 
