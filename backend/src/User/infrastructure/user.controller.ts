@@ -11,7 +11,7 @@ import { JwtAuthGuard } from "src/Auth/infrastructure/jwt-auth.guard";
 @UseFilters(UserExceptionFilter)
 @Controller("api/v1/users")
 export class UserController {
-    validFilters = ['role', 'number']
+    validFilters = ['role', 'number', 'creatorId']
     validIncludes = ['permissions', 'tickets']
 
     constructor(private readonly userService: UserService){}
