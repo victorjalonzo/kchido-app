@@ -2,8 +2,6 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseFi
 import { CreateOrderDTO } from "../application/create-order.dto";
 import { OrderService } from "../application/order.service";
 import { UpdateOrderDTO } from "../application/update-order.dto";
-import { IncludeOrderQuery } from "../application/include-order.query";
-import { FindOrderQuery } from "../application/find-order.query";
 import { FindOrderDto } from "../application/find-order.dto";
 import { OrderExceptionFilter } from "./order-exception.filter";
 import { Request } from "express";
@@ -47,20 +45,27 @@ export class OrderController {
         return await this.service.findManyWithUserScope(userId, filterQueries, includeQueries)
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     @UsePipes(new ValidationPipe({transform: true}))
-    async findOne(@Param('id') id: string, @Query() query: FindOrderDto){
+    async findOne(@Param('id') id: string, @Query() query: FindOrderDto, @Req() req: Request){
+        const userId = req.user.userId
+
         const { includeQueries } = QueryRequestExtractor.extract(query, {
             validFilters: this.validFilters,
             validIncludes: this.validIncludes
         })
 
-        return await this.service.findById(id, includeQueries)
+        return await this.service.findWithUserScope(userId, { id }, includeQueries)
     }
 
+    /*
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    async delete(@Param('id') id: string){
-        return await this.service.delete(id)
+    async delete(@Param('id') id: string, @Req() req: Request){
+        const userId = req.user.userId
+
+        return await this.service.deleteWithUserScope(userId, { id })
     }
-    
+    */
 }
