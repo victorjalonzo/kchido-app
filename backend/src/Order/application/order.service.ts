@@ -153,6 +153,32 @@ export class OrderService {
         },  include)
     }
 
+    findWithUserScope = async (userId: string, filters: FindOrderQuery,  include?: IncludeOrderQuery) => {
+        const user = await this.userService.findById(userId)
+        
+        if (user.isAdmin || user.isChatbot) {
+            return await this._find(filters, include)
+        }
+
+        return await  this._find({
+            ...filters,
+            assistedBy: user.id
+        },  include)
+    }
+
+    deleteWithUserScope = async (userId: string, filters: FindOrderQuery) => {
+        const user = await this.userService.findById(userId)
+        
+        if (user.isAdmin || user.isChatbot) {
+            return await this._delete(filters)
+        }
+
+        return await  this._delete({
+            ...filters,
+            assistedBy: user.id
+        })
+    }
+
     findById = async (id: string, include?: IncludeOrderQuery) => {
         return await this._find( { id }, include)
     }
@@ -162,7 +188,15 @@ export class OrderService {
     }
 
     delete = async (id: string) => {
-        return await this.repository.delete(this.model, { id })
+        return await this._delete({ id })
+    }
+
+    _delete = async (filters: FindOrderQuery) => {
+        return await this.repository.delete(this.model, filters)
+        .then(record => {
+            if (!record) throw new OrderNotFound()
+            return OrderMapper.toDomain(record)
+        })
     }
 
     _find = async (filters?: Record<string, any>, include?: IncludeOrderQuery): Promise<Order> => {
