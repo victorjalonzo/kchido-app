@@ -1,12 +1,12 @@
-import { IsArray, IsOptional } from "class-validator"
+import { IsArray, IsOptional, IsString } from "class-validator"
 import { Transform } from "class-transformer"
 import { OrderStatus } from "../domain/order.entity"
 
 export class FindOrderDto {
-    @IsOptional()
+    @IsOptional() @IsString()
     userId?: string
 
-    @IsOptional()
+    @IsOptional() @IsString()
     raffleId?: string
 
     @IsOptional()
