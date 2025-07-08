@@ -4,7 +4,7 @@ import { RaffleIncludeValues } from "../application/raffle.service"
 import { TicketMapper } from "src/Ticket/infrastructure/ticket.mapper"
 import { OrderMapper } from "src/Order/infrastructure/order.mapper"
 import { UserMapper } from "src/User/infrastructure/user.mapper"
-import { SharedConfig } from "src/Shared/shared.config"
+import { sharedConfig } from "src/Shared/shared.config"
 
 export class RaffleMapper {
     static toDomain = (raw: (PrismaRaffle & RaffleIncludeValues))  => {
@@ -18,8 +18,8 @@ export class RaffleMapper {
 
 
         raw.image = raw.image
-        ? `${SharedConfig.apiURL}/raffles/${raw.id}/image`
-        : `${SharedConfig.apiURL}/static/default/raffle-image.png`
+        ? `${sharedConfig.apiURL}/raffles/${raw.id}/image`
+        : `${sharedConfig.apiURL}/static/default/raffle-image.png`
 
  
         return new Raffle({
