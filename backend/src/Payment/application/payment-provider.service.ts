@@ -5,14 +5,41 @@ import { CreatePaymentProviderDTO } from "./create-payment-provider.dto";
 import { Injectable } from "@nestjs/common";
 import { PaymentProviderMapper } from "../infrastructure/payment-provider.mapper";
 import { PaymentProviderNotFound } from "../domain/payment-provider.exceptions";
+import { PaypalService } from "./paypal.service";
 
 @Injectable()
 export class PaymentProviderService {
     model: Model = Model.PAYMENT_PROVIDERS
 
-    constructor (private readonly repository: SharedRepository<PrismaPaymentProvider>) {}
+    constructor (
+        private readonly repository: SharedRepository<PrismaPaymentProvider>,
+        private readonly paypalService: PaypalService
+    ) {}
+
+    upsert = async (dto: CreatePaymentProviderDTO) => {
+        const clientId = dto.clientId
+        const clientSecret = dto.clientSecret
+        const paymentProviderName = dto.name
+
+        const record = await this.repository.findOne(this.model, { name: paymentProviderName })
+        if (record) await this.repository.delete(this.model, { id: record.id })
+      
+        const accessToken = await this.paypalService.getAccessToken(clientId, clientSecret)
+
+        await this.paypalService.getWebhooks(accessToken)
+        .then(async webhooks => {
+            for (const webhook of webhooks) {
+                await this.paypalService.deleteWebhook(accessToken, webhook.id)
+            }
+        })
+
+        await this.paypalService.createWebhook(accessToken)
+
+        return await this.repository.create(this.model, dto)
+        .then(record => PaymentProviderMapper.toDomain(record))
+    }
     
-    create = async (dto: CreatePaymentProviderDTO) => {
+    _create = async (dto: CreatePaymentProviderDTO) => {
         return await this.repository.create(this.model, dto)
         .then((record: PrismaPaymentProvider) => PaymentProviderMapper.toDomain(record))
     }
