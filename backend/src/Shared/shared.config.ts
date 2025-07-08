@@ -2,37 +2,94 @@ import { config } from "dotenv"
 
 config()
 
-export class SharedConfig {
-    static get serverPort(): number | string{
-        return process.env.PORT ?? 3000
+enum AppMode {
+    PRODUCTION = 'production',
+    TEST = 'test'
+}
+
+class SharedConfig {
+    appMode: AppMode
+    appSchema: string
+    appHost: string
+    appPort: number
+    appApi: string
+    _databaseURL: string
+    _jwtSecret: string
+    _jwtExpiresIn: string
+    _chatbotServerURL: string
+    paypalAuthLiveURL: string
+    paypalWebhookLiveURL: string
+    paypalAuthTestURL: string 
+    paypalWebhookTestURL: string 
+
+    constructor () {
+        this.appMode = <AppMode>this._getEnv('APP_MODE')
+        this.appSchema = this._getEnv('APP_SCHEMA')
+        this.appHost = this._getEnv('APP_HOST')
+        this.appPort = Number(this._getEnv('APP_PORT', '3000'))
+        this.appApi = this._getEnv('APP_API')
+
+        this._jwtSecret = this._getEnv('JWT_SECRET')
+        this._jwtExpiresIn = this._getEnv('JWT_EXPIRES_IN')
+
+        this._databaseURL = this._getEnv('DATABASE_URL')
+
+        this._chatbotServerURL = this._getEnv('CHATBOT_SERVER_URL')
+
+        this.paypalAuthLiveURL = this._getEnv('PAYPAL_LIVE_AUTH_URL')
+        this.paypalWebhookLiveURL = this._getEnv('PAYPAL_LIVE_WEBHOOK_URL')
+        
+        this.paypalAuthTestURL = this._getEnv('PAYPAL_TEST_AUTH_URL')
+        this.paypalWebhookTestURL = this._getEnv('PAYPAL_TEST_WEBHOOK_URL')
     }
 
-    static get apiURL(): string {
-        const schema = process.env.SCHEMA
-        const host = process.env.HOST
-        const port = process.env.PORT ?? 3000
-        const api = process.env.API
-
-        return host == 'localhost'
-        ? `${schema}://${host}:${port}/${api}`
-        : `${schema}://${host}/${api}`
+    get appURL(): string {
+        return this.appMode == AppMode.PRODUCTION
+        ? `${this.appSchema}://${this.appHost}`
+        : `${this.appSchema}://${this.appHost}: ${this.appPort}`
     }
 
-    static get databaseURL(): string{
-        return <string>process.env.DATABASE_URL
+    get apiURL(): string {
+        return `${this.appURL}/${this.appApi}`
     }
 
-    static get jwtSecret(): string{
-        return <string>process.env.JWT_SECRET
+    get databaseURL(): string{
+        return this._databaseURL
     }
 
-    static get jwtExpiresIn(): string {
-        return <string>process.env.JWT_EXPIRES_IN
+    get jwtSecret(): string{
+        return this._jwtSecret
     }
 
-    static get chatbotServerUrl() {
-        const chatbotServerUrl = process.env.CHATBOT_SERVER_URL
-        if (!chatbotServerUrl) throw new Error('Missing CHATBOT_SERVER_URL environment variable')
-        return chatbotServerUrl
+    get jwtExpiresIn(): string {
+        return this._jwtExpiresIn
+    }
+
+    get chatbotServerURL() {
+        return this._chatbotServerURL
+    }
+
+    get paypalWebhookURL() {
+        return this.appMode == AppMode.PRODUCTION
+        ? this.paypalWebhookLiveURL
+        : this.paypalWebhookTestURL
+    }
+
+    get paypalAuthURL() {
+        return this.appMode == AppMode.PRODUCTION
+        ? this.paypalAuthLiveURL
+        : this.paypalAuthTestURL
+    }
+
+    _getEnv(variableName: string, defaultValue?: string): string {
+        let value = process.env[variableName]
+        if (!value) {
+            if (!defaultValue) throw Error(`Missing ${variableName} variable environment`)
+            return defaultValue
+        }
+
+        return value;
     }
 }
+
+export const sharedConfig = new SharedConfig()
