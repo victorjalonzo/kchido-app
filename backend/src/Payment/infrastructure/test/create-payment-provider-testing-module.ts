@@ -5,6 +5,7 @@ import { SharedModule } from "src/Shared/shared.module"
 import { TaskModule } from "src/Task/infrastructure/task.module"
 import { PaymentProviderController } from "../payment-provider.controller"
 import { PaymentWebhookController } from "../payment-webhook.controller"
+import { PaypalService } from "src/Payment/application/paypal.service"
 
 export const createPaymentProviderTestingModule = async () => {
     return await Test.createTestingModule({
@@ -13,7 +14,10 @@ export const createPaymentProviderTestingModule = async () => {
             OrderModule, 
             TaskModule
         ],
-        providers: [PaymentProviderService],
+        providers: [
+            PaymentProviderService,
+            PaypalService
+        ],
         controllers: [
             PaymentProviderController,
             PaymentWebhookController
