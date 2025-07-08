@@ -5,6 +5,7 @@ import { PaymentWebhookController } from "./payment-webhook.controller";
 import { PaymentProviderService } from "../application/payment-provider.service";
 import { OrderModule } from "src/Order/infrastructure/order.module";
 import { TaskModule } from "src/Task/infrastructure/task.module";
+import { PaypalService } from "../application/paypal.service";
 
 @Module({
     imports: [
@@ -12,7 +13,10 @@ import { TaskModule } from "src/Task/infrastructure/task.module";
         OrderModule, 
         TaskModule
     ],
-    providers: [PaymentProviderService],
+    providers: [
+        PaymentProviderService,
+        PaypalService
+    ],
     controllers: [
         PaymentProviderController,
         PaymentWebhookController
