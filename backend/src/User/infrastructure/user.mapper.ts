@@ -14,8 +14,8 @@ export class UserMapper {
         const tickets = raw.tickets ? raw.tickets.map(ticket => TicketMapper.toDomain(ticket)) : []
 
         raw.image = raw.image
-        ? `${sharedConfig.apiURL}/users/${raw.id}/profile`
-        : `${sharedConfig.apiURL}/static/default/profile-image.png`
+        ? `${sharedConfig.appApiURL}/users/${raw.id}/profile`
+        : `${sharedConfig.appApiURL}/static/default/profile-image.png`
 
         return new User({
             ...raw,
