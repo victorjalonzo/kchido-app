@@ -12,15 +12,16 @@ class SharedConfig {
     appSchema: string
     appHost: string
     appPort: number
-    appApi: string
-    _databaseURL: string
-    _jwtSecret: string
-    _jwtExpiresIn: string
-    _chatbotServerURL: string
-    paypalAuthLiveURL: string
-    paypalWebhookLiveURL: string
-    paypalAuthTestURL: string 
-    paypalWebhookTestURL: string 
+    private readonly appWebhook: string
+    private readonly appApi: string
+    private readonly _databaseURL: string
+    private readonly _jwtSecret: string
+    private readonly _jwtExpiresIn: string
+    private readonly _chatbotServerURL: string
+    private readonly paypalAuthLiveURL: string
+    private readonly paypalWebhookLiveURL: string
+    private readonly paypalAuthTestURL: string 
+    private readonly paypalWebhookTestURL: string 
 
     constructor () {
         this.appMode = <AppMode>this._getEnv('APP_MODE')
@@ -28,6 +29,7 @@ class SharedConfig {
         this.appHost = this._getEnv('APP_HOST')
         this.appPort = Number(this._getEnv('APP_PORT', '3000'))
         this.appApi = this._getEnv('APP_API')
+        this.appWebhook = this._getEnv('APP_WEBHOOK')
 
         this._jwtSecret = this._getEnv('JWT_SECRET')
         this._jwtExpiresIn = this._getEnv('JWT_EXPIRES_IN')
@@ -38,19 +40,22 @@ class SharedConfig {
 
         this.paypalAuthLiveURL = this._getEnv('PAYPAL_LIVE_AUTH_URL')
         this.paypalWebhookLiveURL = this._getEnv('PAYPAL_LIVE_WEBHOOK_URL')
-        
         this.paypalAuthTestURL = this._getEnv('PAYPAL_TEST_AUTH_URL')
         this.paypalWebhookTestURL = this._getEnv('PAYPAL_TEST_WEBHOOK_URL')
     }
 
     get appURL(): string {
-        return this.appMode == AppMode.PRODUCTION
-        ? `${this.appSchema}://${this.appHost}`
-        : `${this.appSchema}://${this.appHost}: ${this.appPort}`
+       return this.appMode == AppMode.PRODUCTION || this.appHost.toLowerCase() != 'localhost'
+       ? `${this.appSchema}://${this.appHost}`
+       : `${this.appSchema}://${this.appHost}: ${this.appPort}`
     }
 
-    get apiURL(): string {
+    get appApiURL(): string {
         return `${this.appURL}/${this.appApi}`
+    }
+
+    get appWebhookURL(): string {
+        return `${this.appApiURL}/${this.appWebhook}`
     }
 
     get databaseURL(): string{
