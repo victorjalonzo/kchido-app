@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Task } from "../domain/task.entity";
-import { SharedConfig } from "src/Shared/shared.config";
+import { sharedConfig } from "src/Shared/shared.config";
 
-const CHATBOT_WEBHOOK_URL = `${SharedConfig.chatbotServerUrl}/webhook`
+const CHATBOT_WEBHOOK_URL = `${sharedConfig.chatbotServerURL}/webhook`
 
 @Injectable()
 export class TaskDispatcher {
