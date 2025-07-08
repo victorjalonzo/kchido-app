@@ -155,7 +155,7 @@ export class RaffleService {
             return imagePath;
         }
         catch(e) {
-            const apiURL = sharedConfig.apiURL
+            const apiURL = sharedConfig.appApiURL
             const staticEndpoint = `${apiURL}/static/default/raffle-image.png`
             return staticEndpoint;
         }
