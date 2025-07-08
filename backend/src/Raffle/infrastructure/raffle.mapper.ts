@@ -18,8 +18,8 @@ export class RaffleMapper {
 
 
         raw.image = raw.image
-        ? `${sharedConfig.apiURL}/raffles/${raw.id}/image`
-        : `${sharedConfig.apiURL}/static/default/raffle-image.png`
+        ? `${sharedConfig.appApiURL}/raffles/${raw.id}/image`
+        : `${sharedConfig.appApiURL}/static/default/raffle-image.png`
 
  
         return new Raffle({
