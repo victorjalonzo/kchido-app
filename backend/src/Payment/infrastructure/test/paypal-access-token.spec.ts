@@ -1,13 +1,13 @@
-import { PaymentProviderService } from "src/Payment/application/payment-provider.service"
 import { createPaymentProviderTestingModule } from "./create-payment-provider-testing-module"
 import { CreatePaymentProviderDTO, PaymentProviderName } from "src/Payment/application/create-payment-provider.dto"
+import { PaypalService } from "src/Payment/application/paypal.service"
 
-describe('Paypal payment provider', () => {
-    let service: PaymentProviderService
+describe('Paypal service: access token', () => {
+    let paypalService: PaypalService
     
     beforeAll(async () => {
         const module = await createPaymentProviderTestingModule()
-        service = module.get(PaymentProviderService)
+        paypalService = module.get(PaypalService)
     })
 
     it('Should return an access token', async () => {
@@ -17,7 +17,7 @@ describe('Paypal payment provider', () => {
             name: PaymentProviderName.PAYPAL
         }
         
-        const accessCode = await service._getPaypalAccessToken(payload.clientId, payload.clientSecret)
+        const accessCode = await paypalService.getAccessToken(payload.clientId, payload.clientSecret)
         console.log(accessCode)
         
         expect(accessCode).toBeDefined()
