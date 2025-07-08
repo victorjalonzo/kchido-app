@@ -20,7 +20,7 @@ import {
 } from "@prisma/client";
 import { RaffleShortIdGenerator } from "../infrastructure/util/raffle-shortId-generator";
 import { RaffleImageUploader } from "../infrastructure/util/raffle-image-uploader";
-import { SharedConfig } from "src/Shared/shared.config";
+import { sharedConfig } from "src/Shared/shared.config";
 
 export interface FindRaffleFilters {
     id?: string
@@ -155,7 +155,7 @@ export class RaffleService {
             return imagePath;
         }
         catch(e) {
-            const apiURL = SharedConfig.apiURL
+            const apiURL = sharedConfig.apiURL
             const staticEndpoint = `${apiURL}/static/default/raffle-image.png`
             return staticEndpoint;
         }
