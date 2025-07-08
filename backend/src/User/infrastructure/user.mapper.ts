@@ -3,7 +3,7 @@ import { User, UserStatus, UserType } from "../domain/user.entity";
 import { IncludeUsersRelationValues } from "../application/user.service";
 import { PermissionMapper } from "src/Permission/infrastructure/permission.mapper";
 import { TicketMapper } from "src/Ticket/infrastructure/ticket.mapper";
-import { SharedConfig } from "src/Shared/shared.config";
+import { sharedConfig } from "src/Shared/shared.config";
 
 export class UserMapper {
     static toDomain = (raw: (Users & IncludeUsersRelationValues)) => {
@@ -13,9 +13,9 @@ export class UserMapper {
         const permissions = raw.permissions ? PermissionMapper.toDomain(raw.permissions) : null
         const tickets = raw.tickets ? raw.tickets.map(ticket => TicketMapper.toDomain(ticket)) : []
 
-        if (raw.image) {
-            raw.image = `${SharedConfig.apiURL}/users/${raw.id}/profile`
-        }
+        raw.image = raw.image
+        ? `${sharedConfig.apiURL}/users/${raw.id}/profile`
+        : `${sharedConfig.apiURL}/static/default/profile-image.png`
 
         return new User({
             ...raw,
