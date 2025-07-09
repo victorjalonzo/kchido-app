@@ -149,15 +149,14 @@ model Tickets {
 }
 
 model PaymentProviders {
-  id            String  @id @default(uuid())
-  name          String
+  name          String @unique
   clientId  String
   clientSecret  String
 }
 
 model ChatbotConfigurations {
   id String @id
-  active Boolean @default(true)
+  isOn Boolean @default(true)
 }
 
 model Tasks {
