@@ -1,12 +1,10 @@
 interface Props {
-    id: string
     name: string 
     clientId: string
     clientSecret: string
 }
 
 export class PaymentProvider {
-    id: string 
     name: string 
     clientId: string
     clientSecret: string
