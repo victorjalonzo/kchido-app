@@ -70,7 +70,7 @@ export class PaypalService {
             throw Error(`Error ${response.status}: ${data.message}`)
         }
         
-        return data
+        return data.webhooks
     }
 
     deleteWebhook = async (accessToken: string, webhookId: string) => {
@@ -83,12 +83,12 @@ export class PaypalService {
                 'Content-Type': 'application/json'
             }
         })
-
-        const data = await response.json()
+        
         if (!response.ok) {
+            const data = await response.json()
             throw Error(`Error ${response.status}: ${data.message}`)
         }
 
-        return data;
+        return true;
     }
 }
