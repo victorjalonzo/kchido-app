@@ -1,14 +1,16 @@
-import { Controller, Delete, Post, Body, Param, Get } from "@nestjs/common";
+import { Controller, Delete, Post, Body, Param, Get, UseFilters } from "@nestjs/common";
 import { PaymentProviderService } from "../application/payment-provider.service";
 import { CreatePaymentProviderDTO } from "../application/create-payment-provider.dto";
+import { PaymentProviderExceptionFilter } from "./payment-provider-exception.filter";
 
+@UseFilters(PaymentProviderExceptionFilter)
 @Controller('api/v1/payment-provider')
 export class PaymentProviderController {
     constructor (private readonly service: PaymentProviderService) {}
 
     @Post()
     async create(@Body() dto: CreatePaymentProviderDTO){
-        return await this.service.create(dto)
+        return await this.service.upsert(dto)
     }
 
     @Get(':name')
@@ -17,7 +19,7 @@ export class PaymentProviderController {
     }
 
     @Delete(':name')
-    async delete(@Param() name: string){
+    async delete(@Param('name') name: string){
         return await this.service.deleteByName(name)
     }
 }
