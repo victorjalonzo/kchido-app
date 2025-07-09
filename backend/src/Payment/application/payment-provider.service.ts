@@ -22,7 +22,7 @@ export class PaymentProviderService {
         const paymentProviderName = dto.name
 
         const record = await this.repository.findOne(this.model, { name: paymentProviderName })
-        if (record) await this.repository.delete(this.model, { id: record.id })
+        if (record) await this.repository.delete(this.model, { name: record.name })
       
         const accessToken = await this.paypalService.getAccessToken(clientId, clientSecret)
 
