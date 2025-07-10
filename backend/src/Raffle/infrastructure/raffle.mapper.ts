@@ -5,6 +5,7 @@ import { TicketMapper } from "src/Ticket/infrastructure/ticket.mapper"
 import { OrderMapper } from "src/Order/infrastructure/order.mapper"
 import { UserMapper } from "src/User/infrastructure/user.mapper"
 import { sharedConfig } from "src/Shared/shared.config"
+import { PublicRaffle } from "../domain/public-raffle.entity"
 
 export class RaffleMapper {
     static toDomain = (raw: (PrismaRaffle & RaffleIncludeValues))  => {
@@ -30,6 +31,24 @@ export class RaffleMapper {
             orders,
             participants,
             creator
+        })
+    }
+
+    static toPublicDomain = (raw: (PrismaRaffle & RaffleIncludeValues))  => {
+        const status = raw.status as RaffleStatus
+        const visibility = raw.visibility as RaffleVisibility
+
+        raw.image = raw.image
+        ? `${sharedConfig.appApiURL}/raffles/${raw.id}/image`
+        : `${sharedConfig.appApiURL}/static/default/raffle-image.png`
+
+        const accumulated = raw.initialAmount + raw.accumulated
+ 
+        return new PublicRaffle({
+            ...raw,
+            status,
+            visibility,
+            accumulated
         })
     }
 }
