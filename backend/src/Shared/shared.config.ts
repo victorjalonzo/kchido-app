@@ -21,7 +21,8 @@ class SharedConfig {
     private readonly paypalAuthLiveURL: string
     private readonly paypalWebhookLiveURL: string
     private readonly paypalAuthTestURL: string 
-    private readonly paypalWebhookTestURL: string 
+    private readonly paypalWebhookTestURL: string
+    private readonly _chatbotAdminNumber: string 
 
     constructor () {
         this.appMode = <AppMode>this._getEnv('APP_MODE')
@@ -37,11 +38,13 @@ class SharedConfig {
         this._databaseURL = this._getEnv('DATABASE_URL')
 
         this._chatbotServerURL = this._getEnv('CHATBOT_SERVER_URL')
+        this._chatbotAdminNumber = this._getEnv('CHATBOT_ADMIN_NUMBER')
 
         this.paypalAuthLiveURL = this._getEnv('PAYPAL_LIVE_AUTH_URL')
         this.paypalWebhookLiveURL = this._getEnv('PAYPAL_LIVE_WEBHOOK_URL')
         this.paypalAuthTestURL = this._getEnv('PAYPAL_TEST_AUTH_URL')
         this.paypalWebhookTestURL = this._getEnv('PAYPAL_TEST_WEBHOOK_URL')
+
     }
 
     get appURL(): string {
@@ -72,6 +75,10 @@ class SharedConfig {
 
     get chatbotServerURL() {
         return this._chatbotServerURL
+    }
+
+    get chatbotAdminNumber(){
+        return this._chatbotAdminNumber
     }
 
     get paypalWebhookURL() {
