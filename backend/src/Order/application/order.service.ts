@@ -179,6 +179,14 @@ export class OrderService {
         })
     }
 
+    findPublicById = async (id: string, include?: IncludeOrderQuery) => {
+        return await this.repository.findOne(this.model, { id }, include)
+        .then(record => {
+            if (!record) throw new OrderNotFound()
+            return OrderMapper.toPublicDomain(record)
+        })
+    }
+
     findById = async (id: string, include?: IncludeOrderQuery) => {
         return await this._find( { id }, include)
     }
