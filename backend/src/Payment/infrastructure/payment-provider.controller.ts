@@ -8,6 +8,11 @@ import { PaymentProviderExceptionFilter } from "./payment-provider-exception.fil
 export class PaymentProviderController {
     constructor (private readonly service: PaymentProviderService) {}
 
+    @Get('public/:name')
+    async getClientId(@Param('name') name: string) {
+        return await this.service.getClientId(name)
+    }
+
     @Post()
     async create(@Body() dto: CreatePaymentProviderDTO){
         return await this.service.upsert(dto)
