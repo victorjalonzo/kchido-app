@@ -16,6 +16,11 @@ export class PaymentProviderService {
         private readonly paypalService: PaypalService
     ) {}
 
+    getClientId = async (name: string) => {
+        return await this._findOne({ name })
+        .then(paymentProvider => ({clientId: paymentProvider.clientId}))
+    }
+
     upsert = async (dto: CreatePaymentProviderDTO) => {
         const clientId = dto.clientId
         const clientSecret = dto.clientSecret
