@@ -8,5 +8,6 @@ export enum Model {
     WINNER_NUMBERS = 'RaffleWinnerNumbers',
     PAYMENT_PROVIDERS = 'PaymentProviders',
     TASKS = 'Tasks',
-    SUBTASKS = 'SubTasks'
+    SUBTASKS = 'SubTasks',
+    CHATBOT_CONFIGURATION = 'ChatbotCOnfiguration'
 }
