@@ -71,7 +71,6 @@ model Raffles {
   subscribers     Int      @default(0)
   visibility      String   @default("public")
   status          String   @default("ongoing")
-  whatsAppGroupId String? 
   creatorId       String
   createdAt       DateTime @default(now()) @db.Timestamp(6)
   endsAt          DateTime
@@ -157,6 +156,8 @@ model PaymentProviders {
 model ChatbotConfigurations {
   id String @id
   isOn Boolean @default(true)
+  adminNumber String?
+  whatsAppGroupId String?
 }
 
 model Tasks {
