@@ -29,9 +29,6 @@ export class UpdateRaffleDTO {
     @IsOptional() @IsArray()
     winnerNumbers?: string[]
 
-    @IsOptional() @IsString()
-    whatsAppGroupId?: string 
-
     @IsOptional() @IsDateString()
     endsAt?: Date
 }
