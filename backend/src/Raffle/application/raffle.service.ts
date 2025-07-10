@@ -21,6 +21,9 @@ import {
 import { RaffleShortIdGenerator } from "../infrastructure/util/raffle-shortId-generator";
 import { RaffleImageUploader } from "../infrastructure/util/raffle-image-uploader";
 import { sharedConfig } from "src/Shared/shared.config";
+import { CreateTaskDto } from "src/Task/application/create-task.dto";
+import { TaskStatus, TaskType } from "src/Task/domain/task.entity";
+import { TaskService } from "src/Task/application/task.service";
 
 export interface FindRaffleFilters {
     id?: string
@@ -52,7 +55,8 @@ export class RaffleService {
 
     constructor(
         private readonly repository: SharedRepository<PrismaRaffle>,
-        private readonly winnerNumberService: WinnerNumberService
+        private readonly taskService: TaskService, 
+        private readonly winnerNumberService: WinnerNumberService,
     ) {}
 
     addParticipant = async (raffleId: string, userId: string, options: {transaction: PrismaClient}) => {
@@ -108,21 +112,37 @@ export class RaffleService {
 
             return record;
         })
+
+        const createTaskDto: CreateTaskDto = {
+            type: TaskType.RAFFLE_ENDED,
+            raffleId: record.id,
+            status: TaskStatus.DELIVERING
+        }
+
+        await this.taskService.create(createTaskDto).catch(_ => null) 
+
         return await this._findOne({ id: record.id }, { winnerNumbers: true })
     }
 
     findPublicOne = async (id: string, includes?: RaffleIncludeOptions) => {
-        return await this._findOne(
-            { id, visibility: RaffleVisibility.PUBLIC},
-            includes
-        )
+        return await this.repository.findOne(this.model, {
+            id: id, 
+            visibility: RaffleVisibility.PUBLIC,
+        }, includes)
+        .then(record => {
+            if (!record) throw new RaffleNotFoundException()
+            return RaffleMapper.toPublicDomain(record)
+        })
     }
 
     findPublicMany = async (includes?: RaffleIncludeOptions) => {
-        return await this._findMany(
+        return await this.repository.findMany(this.model, 
             { visibility: RaffleVisibility.PUBLIC},
             includes
         )
+        .then(records => records.map(
+            record => RaffleMapper.toPublicDomain(record)
+        ))
     }
 
     findById = async (id: string, includes?: RaffleIncludeOptions): Promise<Raffle> => {
