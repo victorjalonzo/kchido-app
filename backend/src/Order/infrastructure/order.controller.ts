@@ -16,6 +16,18 @@ export class OrderController {
 
     constructor(private readonly service: OrderService){}
 
+    @Get('public/:id')
+    @UsePipes(new ValidationPipe({transform: true}))
+    async findPublic(@Param('id') id: string, @Query() query: FindOrderDto){
+
+        const { includeQueries } = QueryRequestExtractor.extract(query, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
+
+        return await this.service.findPublicById(id, includeQueries)
+    }
+
     @UseGuards(JwtAuthGuard)
     @Post()
     @UsePipes(new ValidationPipe())
