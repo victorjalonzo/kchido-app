@@ -20,12 +20,13 @@ export class PaymentWebhookController {
 
         if (event.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
           try {
-            await this.orderService.complete(orderId)
+            const order = await this.orderService.complete(orderId)
 
             const createTaskDto: CreateTaskDto = {
               type: TaskType.PAYMENT_COMPLETED,
               orderId: orderId,
-              status: TaskStatus.DELIVERING
+              status: TaskStatus.DELIVERING,
+              customerId: order.userId
             }
 
             await this.taskService.create(createTaskDto)
