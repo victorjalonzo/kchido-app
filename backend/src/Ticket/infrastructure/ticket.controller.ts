@@ -5,9 +5,13 @@ import { FindTicketDTO } from "../application/find-ticket.dto";
 import { TicketJoinOption } from "../application/ticket-join-option";
 import { FindTicketFilter } from "../application/find-ticket-filter";
 import { Response } from "express";
+import { QueryRequestExtractor } from "src/Shared/util/queries-extractor";
 
 @Controller('api/v1/tickets')
 export class TicketController {
+    validFilters = ['userId', 'raffleId', 'orderId', 'serial']
+    validIncludes = ['user', 'raffle', 'order']
+
     constructor (private readonly service: TicketService){}
 
     @Post()
@@ -19,23 +23,12 @@ export class TicketController {
     @Get()
     @UsePipes(new ValidationPipe({transform: true}))
     async findMany(@Query() query: FindTicketDTO){
-        const joins: TicketJoinOption = {}
-        const filters: FindTicketFilter = {}
+        const {filterQueries, includeQueries} = QueryRequestExtractor.extract(query, {
+            validFilters: this.validFilters,
+            validIncludes: this.validIncludes
+        })
 
-        if (query.include) {
-            const availableJoins = ['user', 'raffle', 'order']
-
-            query.include.forEach(key => {
-                availableJoins.includes(key) ? joins[key] = true: null
-            })
-        }
-
-        const availableFilters = ['userId', 'raffleId', 'orderId']
-        availableFilters.forEach(filter => 
-            query[filter] ? filters[filter] = query[filter] : null
-        )
-
-        return await this.service.findMany(filters, joins)
+        return await this.service.findMany(filterQueries, includeQueries)
     }
 
     @Get(':id')
