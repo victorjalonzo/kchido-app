@@ -31,7 +31,7 @@ export class TicketQRCode {
       }).replace(',', '')
   
       // Logo
-      const logoPath = path.join(process.cwd(), 'public', 'logo.png')
+      const logoPath = path.join(process.cwd(), 'public', 'default', 'logo.png')
       const logo = await loadImage(logoPath)
   
       // Generar QR
