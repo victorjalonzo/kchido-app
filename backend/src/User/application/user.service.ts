@@ -39,6 +39,14 @@ export class UserService {
         private readonly permissionService: PermissionService
     ){}
 
+    passwordMatch = async (id: string, password: string): Promise<boolean> => {
+        return await this.repository.findOne(this.model, { id })
+        .then(record => {
+            if (!record) return false;
+            return record.password == password ? true : false; 
+        })
+    }
+
     create = async (dto: CreateUserDTO): Promise<User> => {
         const { permissions, image, ...data } = dto
 
@@ -85,12 +93,10 @@ export class UserService {
         const { id, ...data } = updateUserDTO
 
         if (data.newPassword) {
-            await this.findById(id).then(user => {
-                if (data.password != user.password) throw new PasswordMismatchException()
-                data.password = data.newPassword
-                
-                delete data.newPassword
-            })
+            const isMatch = await this.passwordMatch(id, <string>data.password)
+            if (!isMatch) throw new PasswordMismatchException()
+            data.password = data.newPassword
+            delete data.newPassword
         }
 
         if (data.image) {
