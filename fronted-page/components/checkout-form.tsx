@@ -23,13 +23,10 @@ interface CheckoutFormProps {
 
 
 export default function CheckoutForm({ order, raffle, ticketNumbers }: CheckoutFormProps) {
-  const [isProcessing, setIsProcessing] = useState(false)
-  const router = useRouter()
-
   const ticketPrice = raffle.pricePeerTicket
   const ticketCount = ticketNumbers.length
   const subtotal = ticketCount * ticketPrice
-  const processingFee = Math.round(subtotal * 0.035 * 100) / 100 // 3.5% processing fee
+  const processingFee = 0 
   const total = subtotal + processingFee
 
   return (

@@ -32,7 +32,7 @@ export default function RaffleDetails({ raffle }: { raffle: Raffle }) {
 
       <div className="bg-black rounded-lg p-6 mb-8 text-white text-center">
         <h2 className="text-xl mb-2 font-medium">Premio Estimado</h2>
-        <p className="text-4xl md:text-5xl font-bold">${(raffle.initialAmount + raffle.accumulated).toLocaleString()} USD</p>
+        <p className="text-4xl md:text-5xl font-bold">${raffle.accumulated.toLocaleString()} USD</p>
       </div>
 
       <Card className="mb-8 p-6">
@@ -63,7 +63,7 @@ export default function RaffleDetails({ raffle }: { raffle: Raffle }) {
       </Card>
 
       <div className="text-center space-y-4">
-        <Link href='https://whatsApp.com'>
+        <Link href='https://wa.me/19203812314'>
           <Button className="bg-[#00d65e] hover:bg-[#00c054] text-black px-8 py-6 text-xl rounded-lg font-bold">
             Comprar Boletos en WhatsApp
           </Button>

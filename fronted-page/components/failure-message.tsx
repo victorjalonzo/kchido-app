@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
 import { XCircle, RefreshCw, ArrowLeft, MessageCircle, CreditCard } from "lucide-react"
-import type { Raffle } from "@/lib/types"
 import { formatDate } from "@/lib/utils"
+import { Raffle } from "@/lib/raffle.type"
 
 interface FailureMessageProps {
   raffle: Raffle
@@ -81,7 +81,7 @@ export default function FailureMessage({ raffle, ticketCount, ticketNumbers, err
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                 <Image
-                  src={raffle.iconUrl || "/placeholder.svg"}
+                  src={raffle.image || "/placeholder.svg"}
                   alt={raffle.name}
                   width={40}
                   height={40}
@@ -90,8 +90,8 @@ export default function FailureMessage({ raffle, ticketCount, ticketNumbers, err
               </div>
               <div>
                 <h3 className="font-bold text-lg">{raffle.name}</h3>
-                <p className="text-sm text-gray-500">Finaliza: {formatDate(raffle.endDate)}</p>
-                <p className="text-sm font-medium text-[#00d65e]">Premio: ${raffle.prizeAmount.toLocaleString()} USD</p>
+                <p className="text-sm text-gray-500">Finaliza: {formatDate(raffle.endsAt)}</p>
+                <p className="text-sm font-medium text-[#00d65e]">Premio: ${raffle.accumulated.toLocaleString()} USD</p>
               </div>
             </div>
 

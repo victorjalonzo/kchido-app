@@ -21,26 +21,28 @@ export default function WinningNumbersDisplay({ winningNumbers, endDate, onClick
       <div className="text-center text-sm text-gray-600 mb-3">{formatDateShort(endDate)}</div>
 
       <div className="flex justify-center gap-1 mb-3">
-        {winningNumbers.map((winnerNumber, index) => (
-          <div
-            key={index}
-            className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-bold text-sm"
-          >
-            {winnerNumber.serial}
-          </div>
-        ))}
-        {winningNumbers.length > 0 && (
-          <div className="w-8 h-8 rounded-full bg-[#ff3a8c] flex items-center justify-center text-white font-bold text-sm">
-            {winningNumbers[winningNumbers.length - 1].serial}
-          </div>
-        )}
+      {winningNumbers.map((winnerNumber, index) => {
+  const isLast = index === winningNumbers.length - 1
+  return (
+    <div
+      key={index}
+      className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+        isLast
+          ? 'bg-[#ff3a8c] text-white'
+          : 'bg-gray-100 text-gray-800'
+      }`}
+    >
+      {winnerNumber.serial}
+    </div>
+  )
+})}
       </div>
 
       <button
         onClick={onClick}
         className="w-full bg-black hover:bg-gray-800 text-white py-2 rounded text-sm font-medium transition-colors"
       >
-        VIEW RESULTS
+        VER RESULTADOS
       </button>
     </div>
   )

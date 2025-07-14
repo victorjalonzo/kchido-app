@@ -1,7 +1,7 @@
 import { fetchAPI } from "./api"
 import { Order } from "./order.type"
 
-const endpoint = '/orders'
+const endpoint = '/orders/public'
 
 export class OrderAPI {
     static getById = async (id: string, query?: Record<string, string> | Record<string, boolean>): Promise<Order> => {

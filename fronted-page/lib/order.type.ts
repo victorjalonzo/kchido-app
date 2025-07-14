@@ -9,6 +9,7 @@ export enum OrderStatus {
 
 export interface Order {
     id: string
+    shortId: string 
     userId: string
     total: number
     status: OrderStatus

@@ -18,19 +18,13 @@ export interface Raffle {
     id: string
     name: string
     description: string | null
-    image: string | null
+    image: string
     pricePeerTicket: number
-    initialAmount: number
     accumulated: number
-    subscribers: number
     status: RaffleStatus
     visibility: RaffleVisibility
-    createdBy: string
     createdAt: string
     endsAt: string
     
-    
     winnerNumbers?: WinnerNumber[]
-    //tickets?: Ticket[]
-    //orders?: Order[]
 }

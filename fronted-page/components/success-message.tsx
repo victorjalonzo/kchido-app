@@ -51,7 +51,7 @@ export default function SuccessMessage({ raffle, ticketCount, ticketNumbers, ord
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
                   <Image
-                    src={ImageUrlResolver.resolve(raffle.image)}
+                    src={raffle.image}
                     alt={raffle.name}
                     width={40}
                     height={40}
@@ -62,7 +62,7 @@ export default function SuccessMessage({ raffle, ticketCount, ticketNumbers, ord
                   <h3 className="font-bold text-lg">{raffle.name}</h3>
                   <p className="text-sm text-gray-500">Finaliza: {formatDate(raffle.endsAt)}</p>
                   <p className="text-sm font-medium text-[#00d65e]">
-                    Premio: ${raffle.accumulated.toLocaleString()} USD
+                    Premio: ${(raffle.accumulated).toLocaleString()} USD
                   </p>
                 </div>
               </div>
@@ -112,8 +112,9 @@ export default function SuccessMessage({ raffle, ticketCount, ticketNumbers, ord
           </CardContent>
         </Card>
 
-        {/* Actions */}
+         
         <div className="space-y-4">
+          {/* Actions
           <div className="flex flex-col sm:flex-row gap-3">
             <Button className="flex-1 bg-[#00d65e] hover:bg-[#00c054] text-black">
               <Share2 size={18} className="mr-2" />
@@ -124,11 +125,12 @@ export default function SuccessMessage({ raffle, ticketCount, ticketNumbers, ord
               Descargar Recibo
             </Button>
           </div>
+          */}
 
           <div className="bg-black text-white p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium">Volver al Bot</h4>
+                <h4 className="font-medium">Volver al Chatbot</h4>
                 <p className="text-sm text-gray-300">Regresando automáticamente en {timeLeft} segundos...</p>
               </div>
               <Link href="https://wa.me/1234567890">

@@ -45,7 +45,7 @@ export default function RaffleCard({ raffle }: { raffle: Raffle }) {
     >
       <div className="h-40 bg-[#f8f8f8] flex items-center justify-center relative">
         <Image
-          src={ImageUrlResolver.resolve(raffle.image)}
+          src={raffle.image}
           alt={raffle.name}
           width={120}
           height={120}
@@ -90,7 +90,7 @@ export default function RaffleCard({ raffle }: { raffle: Raffle }) {
         ) : (
           <div className="mt-3 bg-black text-white p-3 rounded-md">
             <p className="text-sm opacity-80">Premio Estimado:</p>
-            <p className="text-lg font-bold">${ (raffle.initialAmount + raffle.accumulated).toLocaleString()} USD</p>
+            <p className="text-lg font-bold">${ raffle.accumulated.toLocaleString()} USD</p>
           </div>
         )}
       </CardContent>

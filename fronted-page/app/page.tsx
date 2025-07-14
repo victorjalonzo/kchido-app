@@ -4,7 +4,7 @@ import RaffleCard from "@/components/raffle-card"
 import Header from "@/components/header"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { Raffle } from "@/lib/raffle.type"
+import { Raffle, RaffleStatus } from "@/lib/raffle.type"
 import { RaffleAPI } from "@/lib/raffle.api"
 
 export default function RafflesPage() {
@@ -12,28 +12,24 @@ export default function RafflesPage() {
 
   useEffect(() => {
     const fetchRaffles = async () => {
-      await RaffleAPI.getAll({'winner-numbers': true})
-      .then(raffles => {
-        console.log('raffles:', raffles)
-        setRaffles(raffles)
-      })
+      const raffles = await RaffleAPI.getAll({ 'winner-numbers': true })
+      console.log('raffles:', raffles)
+      setRaffles(raffles)
     }
 
     fetchRaffles()
   }, [])
 
-  // Sort raffles: active first (sorted by closest end date), then finalized
+  // Ordenar los sorteos: primero los ONGOING por fecha de finalización más cercana, luego los ENDED por fecha más reciente
   const sortedRaffles = [...raffles].sort((a, b) => {
-    // If one is active and the other is not, active comes first
-    if (a.visibility === "public" && b.visibility !== "public") return -1
-    if (a.visibility !== "public" && b.visibility === "public") return 1
+    if (a.status === RaffleStatus.ONGOING && b.status !== RaffleStatus.ONGOING) return -1
+    if (a.status !== RaffleStatus.ONGOING && b.status === RaffleStatus.ONGOING) return 1
 
-    // If both are active, sort by end date (closest first)
-    if (a.visibility === "public" && b.visibility === "public") {
+    if (a.status === RaffleStatus.ONGOING && b.status === RaffleStatus.ONGOING) {
       return new Date(a.endsAt).getTime() - new Date(b.endsAt).getTime()
     }
 
-    // If both are finalized, sort by end date (most recent first)
+    // Ambos son ENDED
     return new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime()
   })
 
@@ -62,20 +58,20 @@ export default function RafflesPage() {
           </div>
         </div>
 
-{/* All Raffles in a single grid */}
-{sortedRaffles.length === 0 ? (
-  <div className="flex items-center justify-center h-64 w-full">
-    <p className="text-gray-500 text-xl text-center">
-      No hay sorteos disponibles por el momento.
-    </p>
-  </div>
-) : (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {sortedRaffles.map((raffle) => (
-      <RaffleCard key={raffle.id} raffle={raffle} />
-    ))}
-  </div>
-)}
+        {/* Todos los sorteos en una sola cuadrícula */}
+        {sortedRaffles.length === 0 ? (
+          <div className="flex items-center justify-center h-64 w-full">
+            <p className="text-gray-500 text-xl text-center">
+              No hay sorteos disponibles por el momento.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedRaffles.map((raffle) => (
+              <RaffleCard key={raffle.id} raffle={raffle} />
+            ))}
+          </div>
+        )}
       </div>
     </>
   )

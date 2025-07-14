@@ -21,7 +21,7 @@ export function formatDateShort(dateString: string): string {
   const date = new Date(dateString)
 
   // Format date as "Wed, May 14, 2025"
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString("es-ES", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -29,4 +29,7 @@ export function formatDateShort(dateString: string): string {
   })
 }
 
-export const ImageFormat = (url: string) => `http://localhost:3001/${url}`
+export const ImageFormat = (url: string) => {
+  //`http://localhost:3001/${url}`
+  return url;
+}

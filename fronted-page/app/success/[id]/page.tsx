@@ -30,7 +30,7 @@ export default async function SuccessPage({ params, order }: SuccessPageProps) {
     return redirect(`/checkout/${currentOrder.id}`)
   }
 
-  const orderId = currentOrder.id
+  const orderId = currentOrder.shortId
   const raffle = currentOrder.raffle as Raffle
   const ticketNumbers = currentOrder.tickets as Ticket[]
   const ticketCount = currentOrder.tickets?.length as number

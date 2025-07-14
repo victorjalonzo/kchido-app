@@ -5,7 +5,6 @@ import { TicketReservation } from "@/lib/ticket-reservation.type"
 
 import CheckoutForm from "@/components/checkout-form"
 import { Order, OrderStatus } from "@/lib/order.type"
-import SuccessPage from "@/app/success/[id]/page"
 
 
 interface CheckoutPageProps {
