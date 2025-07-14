@@ -19,11 +19,12 @@ import { RandomPassword } from "@/shared/lib/random-password"
 
 // Available permissions for sellers
 const availablePermissions = [
+  { id: "manageCustomers", label: "Manejar Clientes", required: true },
+  { id: "manageTickets", label: "Manejar Boletos", required: true},
+  { id: "manageOrders", label: "Manejar Ordenes", required: true },
   { id: "manageRaffles", label: "Manejar Sorteos", required: false},
   { id: "manageSellers", label: "Manejar Vendedores", required: false},
-  { id: "manageTickets", label: "Manejar Boletos", required: true},
   { id: "manageChatbot", label: "Manejar Chatbot", required: false },
-  { id: "manageCustomers", label: "Manejar Clientes", required: true },
 ]
 
 interface SellerFormProps {
@@ -45,7 +46,8 @@ export default function SellerForm({ seller, onSubmit, onCancel, isLoading }: Se
     image: undefined,
     permissions: {
       manageTickets: true,
-      manageCustomers: true      
+      manageCustomers: true,
+      manageOrders: true      
     },
   })
 
