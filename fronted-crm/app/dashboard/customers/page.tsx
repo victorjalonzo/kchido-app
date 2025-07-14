@@ -11,12 +11,13 @@ import DeleteCustomerDialog from "@/features/customers/delete-customer-dialog"
 import BanCustomerDialog from "@/features/customers/ban-customer-dialog"
 import ViewTicketsDialog from "@/features/customers/view-tickets-dialog"
 import CreateCustomerDialog from "@/features/customers/create-customer-dialog"
-import type { User } from "@/shared/lib/types"
 import { useCustomers } from "@/features/customers/hooks/useCustomer"
 import PermissionGuard from "@/features/auth/permission-guard"
 import { PERMISSIONS } from "@/features/auth/permission-enum"
+import { useCustomerPage } from "@/features/customers/hooks/useCustomerPage"
 
 export default function CustomersPage() {
+  
   const {
     /* Data */
     customers,
@@ -62,7 +63,7 @@ export default function CustomersPage() {
     /* Selection */
     selectedCustomer,
     setSelectedCustomer,
-  } = useCustomers()
+  } = useCustomerPage()
 
   return (
     <PermissionGuard permission={PERMISSIONS.MANAGE_CUSTOMERS}>
