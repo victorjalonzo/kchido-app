@@ -21,9 +21,11 @@ export class AuthService {
 
   async _validateUser(email: string, password: string) {
     return await this.usersService.findByEmail(email)
-    .then(user => {
-        if (user.password !== password) throw new UnauthorizedException();
-        return user;
+    .then(async user => {
+      const isMatch = await this.usersService.passwordMatch(user.id, password)
+      if (!isMatch) throw new UnauthorizedException()
+      
+      return user;
     })
     .catch(() => {
         throw new UnauthorizedException()
