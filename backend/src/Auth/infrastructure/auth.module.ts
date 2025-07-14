@@ -6,7 +6,7 @@ import { AuthService } from '../application/auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from 'src/User/infrastructure/user.module';
-import { SharedConfig } from 'src/Shared/shared.config';
+import { sharedConfig } from 'src/Shared/shared.config';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Module({
@@ -14,8 +14,8 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     UserModule,
     PassportModule,
     JwtModule.register({
-      secret: SharedConfig.jwtSecret,
-      signOptions: { expiresIn: SharedConfig.jwtExpiresIn },
+      secret: sharedConfig.jwtSecret,
+      signOptions: { expiresIn: sharedConfig.jwtExpiresIn },
     }),
   ],
   providers: [AuthService, JwtStrategy, JwtAuthGuard],
