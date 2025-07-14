@@ -1,6 +1,6 @@
-import { addKeyword, EVENTS, utils } from "@builderbot/bot";
+import { addKeyword, EVENTS } from "@builderbot/bot";
 import { RaffleAPI } from "../util/raffle.api.js";
-import { Raffle, RaffleStatus, UpdateRafflePayload } from "../util/raffle.type.js";
+import { Raffle, RaffleStatus } from "../util/raffle.type.js";
 import { OrderAPI } from "../util/order.api.js";
 import { CreateOrderPayload } from "../util/order.type.js";
 import { CreateCustomerPayload, Customer, UpdateCustomerPayload } from "../util/customer.type.js";
@@ -9,14 +9,8 @@ import { AuthAPI } from "../util/auth.api.js";
 import { Config } from "../shared/config.js";
 import { Validator } from "../util/message-validator.js";
 import { TicketSerial } from "../util/ticket-generator.js";
-import { Task, TaskStatus, UpdateSubTaskPayload, UpdateTaskPayload } from "../util/tasks.type.js";
-import { TicketAPI } from "../util/ticket.api.js";
-import { writeFileSync } from "fs";
-import * as path from 'path'
-import { SubTaskAPI } from "../util/subTask.api.js";
-import { TaskAPI } from "../util/task.api.js";
 import { ConversactionAbort } from "../util/exceptions.js";
-import { BaileysProvider } from "@builderbot/provider-baileys";
+import { TicketAPI } from "../util/ticket.api.js";
 
 
 interface UserData {
@@ -39,8 +33,6 @@ const PAGE_URL = Config.pageURL
 //Entry flow
 export const buyTicketFlow = addKeyword(EVENTS.ACTION)
 .addAction( async (_, { gotoFlow, provider }) => {
-    const sock = provider.vendor
-    sock
     return gotoFlow(_chooseRaffleFlow)
 })
 
@@ -175,17 +167,28 @@ export const _chooseManualTicketFlow = addKeyword(EVENTS.ACTION)
     : `*Escribe el numero de tu boleto`
 
     const hint = choosenTicketAmount > 1 
-    ? `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto #${currentIndex}_`
-    : `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto_`
+    ? `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto #${currentIndex}_ 🎫`
+    : `\n\n_❕ Escribe un numero de *6 digitos* para tu boleto_ 🎫`
     + Validator.getCancelHint()
 
     return await flowDynamic(message + hint)
 })
 .addAction({ capture: true }, async (ctx, { state, flowDynamic, gotoFlow, fallBack, endFlow}) => {
     try {
-        const choosenTicket = ctx.body
+        const choosenTicket = Validator.getTicketNumber(ctx.body)
         const choosenTicketAmount = state.get('choosenTicketAmount')
-        const choosenTickets = state.get('choosenTickets') ?? []
+        const choosenTickets = <number[]>state.get('choosenTickets') ?? []
+        const raffle = state.get('choosenRaffle')
+
+        const isTaken = choosenTickets.some(ticket => ticket === choosenTicket)
+        if (isTaken) throw Error(`Ya elegiste este numero, elige otro numero.`)
+
+        const isSold = await TicketAPI.getAll({raffleId: raffle.id, serial: choosenTicket.toString()})
+        .then(tickets => {
+            return tickets.length ? true : false
+        })
+
+        if (isSold) throw Error('Este numero no se encuentra disponible, selecciona otro numero de 6 digitos.')
     
         choosenTickets.push(choosenTicket)
     
@@ -225,9 +228,13 @@ export const _confirmChoosenTickets = addKeyword(EVENTS.ACTION)
 
     await flowDynamic(message + hint)
 })
-.addAction({ capture: true}, async (ctx, {fallBack, gotoFlow, endFlow}) => {
+.addAction({ capture: true}, async (ctx, {fallBack, gotoFlow, endFlow, state}) => {
     try {
-        if (!Validator.isAgree(ctx.body)) return gotoFlow(_chooseTicketTypeFlow)
+        if (!Validator.isAgree(ctx.body)) {
+            state.update({ choosenTickets: null })
+            return gotoFlow(_chooseTicketTypeFlow)
+        }
+        
         return gotoFlow(_providePersonalInformation)
     }
     catch (e) {
@@ -514,113 +521,19 @@ export const _resumenFlow = addKeyword(EVENTS.ACTION)
     
 })
 
-export const _orderCompletedFlow = addKeyword(utils.setEvent('ORDER_COMPLETED'))
-.addAction(async (ctx, { flowDynamic, gotoFlow }) => {
-    try {
-        const task = <Task>ctx.task
-
-        for (let i=0; i<=task.subTasks.length-1; i++) {
-            const subTask = task.subTasks[i]
-    
-            if (subTask.status != TaskStatus.PENDING) continue 
-    
-            if (i == 0) {
-                await flowDynamic("Tu pago ha sido completado exitosamente. En breve recibiras tus boletos.")
-            }
-    
-            const ticket = await TicketAPI.get(subTask.ticketId)
-            const caption = `Boleto: *${ticket.serial}*`
-            const buffer = await TicketAPI.getReceiptBuffer(ticket.id)
-            const filePath = path.join(process.cwd(), 'temp.png')
-            writeFileSync(filePath, <any>buffer)
-    
-            await flowDynamic([{
-                body: caption,
-                media: filePath
-            }])
-
-            subTask.status = TaskStatus.COMPLETED
-
-            const payload: UpdateSubTaskPayload = {
-                id: subTask.id,
-                status: subTask.status
-            }
-
-            await SubTaskAPI.update(payload)
-
-            console.log('Subtask completed successfully.')
-        }
-
-        const isTaskCompleted = task.subTasks.length > 0 &&
-        task.subTasks.every(sub => sub.status === TaskStatus.COMPLETED);
-
-        if (isTaskCompleted) {
-            const payload: UpdateTaskPayload = {
-                id: task.id,
-                status: TaskStatus.COMPLETED,
-            }
-            await TaskAPI.update(payload)
-
-            console.log('Task completed successfully.')
-        }
-
-        return gotoFlow(_addGroupFlow)
-    }
-    catch (e) {
-        console.log(`Something went wrong while trying to complete a task. ${String(e)}`)
-    }
-})
-
-export const _addGroupFlow = addKeyword(EVENTS.ACTION)
-.addAction(async (ctx, { state, provider, flowDynamic }) => {
-    try {
-        const raffleId = state.get('raffleId')
-        const raffle = await RaffleAPI.getById(raffleId)
-        const sock = (provider as BaileysProvider).vendor
-        const jid = `${ctx.from}@s.whatsapp.net`;
-        const userMessage = `Unete al grupo para mantenerte al tanto de los resultados de este sorteo:`
-        
-        let groupId = raffle.whatsAppGroupId
-
-        if (groupId) {
-            try {
-                await sock.groupMetadata(groupId)
-            }
-            catch(e) {
-                groupId = null
-            }
-        }
-
-        if (!groupId) {
-            const subject = `Sorteo: ${raffle.name}`; 
-            const participants = [jid];
-    
-            groupId = (await sock.groupCreate(subject, participants)).id
-            await sock.groupSettingUpdate(groupId, 'locked');
-            await sock.groupSettingUpdate(groupId, 'announcement');
-
-            const data: UpdateRafflePayload = {
-                id: raffle.id,
-                whatsAppGroupId: groupId
-            }
-
-            await RaffleAPI.update(data)
-
-            const groupMessage = `*Bienvenidos!*`
-            + `\n\nPor medio de este grupo recibiran los resultados del sorteo: *${raffle.name}*`
-            + `\n\nBuena suerte a todos! ☺️`
-
-            await (provider as BaileysProvider).sendText(groupId, groupMessage)
-        }
-
-        await sock.groupParticipantsUpdate(groupId, [jid], 'add')
-                
-        const inviteCode = await sock.groupInviteCode(groupId);
-        const inviteLink = `https://chat.whatsapp.com/${inviteCode}`;
-
-        return await flowDynamic([userMessage, inviteLink])
-    }
-    catch(e){
-        console.log(`Error while adding customer to WhatsApp group ${e.error}`)
-    }
-})
+export default [
+    buyTicketFlow, 
+    _chooseRaffleFlow,
+    _chooseTicketAmountFlow,
+    _chooseTicketTypeFlow,
+    _chooseGeneratedTicketFlow,
+    _chooseManualTicketFlow,
+    _confirmChoosenTickets,
+    _providePersonalInformation,
+    _provideFirstTimeCountry,
+    _provideFirstTimeCountryStateFlow,
+    _provideFirstTimeNameFlow,
+    _provideFirstTimeNumberFlow,
+    _confirmPersonalInformation,
+    _resumenFlow,
+]
