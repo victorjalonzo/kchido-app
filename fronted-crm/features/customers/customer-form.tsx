@@ -26,7 +26,7 @@ export default function CustomerForm({ customer, onSubmit, onCancel, isLoading }
 
   const { user } = useAuth()
 
-  const [formData, setFormData] = useState<CreateCustomerPayload>({
+  const [formData, setFormData] = useState<CreateCustomerPayload | UpdateCustomerPayload>({
     name: "",
     email: "",
     number: "",
@@ -51,8 +51,6 @@ export default function CustomerForm({ customer, onSubmit, onCancel, isLoading }
         email: customer.email || "",
         number: customer.number || "",
         image: customer.image,
-        role: 'customer',
-        creatorId: (user as User).id
       })
     }
   }, [customer])
