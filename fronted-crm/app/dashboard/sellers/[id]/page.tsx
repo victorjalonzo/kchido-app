@@ -41,6 +41,21 @@ import { useParams } from "next/navigation"
 import { SellerAPI } from "@/features/sellers/api/seller.api"
 import { Seller } from "@/features/sellers/types/seller.type"
 import { User } from "@/features/auth/user.type"
+import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"
+import { TabsContent } from "@radix-ui/react-tabs"
+import { OrdersList } from "@/features/orders/orders-list"
+import { OrdersFilter } from "@/features/orders/orders-filter"
+import ViewOrderDialog from "@/features/orders/view-order-dialog"
+import { CustomersList } from "@/features/customers/customers-list"
+import { useCustomerList } from "@/features/customers/hooks/useCustomerList"
+import { useCustomerDialogs } from "@/features/customers/hooks/useCustomerDialogs"
+import { useCustomerActions } from "@/features/customers/hooks/useCustomerActions"
+import ViewCustomerDialog from "@/features/customers/view-customer-dialog"
+import EditCustomerDialog from "@/features/customers/edit-customer-dialog"
+import ViewTicketsDialog from "@/features/customers/view-tickets-dialog"
+import BanCustomerDialog from "@/features/customers/ban-customer-dialog"
+import DeleteCustomerDialog from "@/features/customers/delete-customer-dialog"
+import CreateCustomerDialog from "@/features/customers/create-customer-dialog"
 
 
 type DateFilter = {
@@ -52,7 +67,7 @@ type DateFilter = {
 
 export default function Dashboard() {
   const { id } = useParams()
-  
+
   const [selectedFilter, setSelectedFilter] = useState<DateFilter>({
     type: "all-time",
     label: "Todo el tiempo",
@@ -64,17 +79,17 @@ export default function Dashboard() {
   const [allCustomers, setCustomers] = useState<Customer[]>([])
 
   useEffect(() => {
-    async function fetchData(){
+    async function fetchData() {
       const user = await SellerAPI.get(id as string)
 
       const customers = await CustomerAPI.getAll({
         creatorId: id,
         tickets: true
       })
-      
+
       const orders = await OrderAPI.getAll({
-        user: true, 
-        raffle: true, 
+        user: true,
+        raffle: true,
         tickets: true,
         assistedBy: id
       })
@@ -148,9 +163,11 @@ export default function Dashboard() {
     })
   }
 
+  
+
   // Apply current period filters
   const currentRange = getDateRange(selectedFilter)
-  const filteredOrders = filterByDateRange(allOrders, "createdAt", currentRange.startDate, currentRange.endDate) as Order[]
+  let filteredOrders = filterByDateRange(allOrders, "createdAt", currentRange.startDate, currentRange.endDate) as Order[]
   const filteredCustomers = filterByDateRange(allCustomers, "createdAt", currentRange.startDate, currentRange.endDate) as Customer[]
 
   // Apply previous period filters for comparison
@@ -198,7 +215,7 @@ export default function Dashboard() {
       amount: `$${order.total.toFixed(2)}`,
     }))
 
-    const recentCustomers = filteredCustomers
+  const recentCustomers = filteredCustomers
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 2)
 
@@ -280,30 +297,30 @@ export default function Dashboard() {
   const generateChartData = () => {
     if (selectedFilter.type === "all-time") {
       // For all-time view, show monthly aggregated data
-    // 1. Agrupar por año-mes (YYYY-MM)
-    type Agg = { orders: number; revenue: number; customers: number }
-    const byMonth: Record<string, Agg> = {}
+      // 1. Agrupar por año-mes (YYYY-MM)
+      type Agg = { orders: number; revenue: number; customers: number }
+      const byMonth: Record<string, Agg> = {}
 
-    allOrders.forEach((o) => {
-      const key = format(new Date(o.createdAt), "yyyy-MM")
-      byMonth[key] ??= { orders: 0, revenue: 0, customers: 0 }
-      byMonth[key].orders += 1
-      byMonth[key].revenue += o.total
-    })
+      allOrders.forEach((o) => {
+        const key = format(new Date(o.createdAt), "yyyy-MM")
+        byMonth[key] ??= { orders: 0, revenue: 0, customers: 0 }
+        byMonth[key].orders += 1
+        byMonth[key].revenue += o.total
+      })
 
-    allCustomers.forEach((c) => {
-      const key = format(new Date(c.createdAt), "yyyy-MM")
-      byMonth[key] ??= { orders: 0, revenue: 0, customers: 0 }
-      byMonth[key].customers += 1
-    })
+      allCustomers.forEach((c) => {
+        const key = format(new Date(c.createdAt), "yyyy-MM")
+        byMonth[key] ??= { orders: 0, revenue: 0, customers: 0 }
+        byMonth[key].customers += 1
+      })
 
-    // 2. Convertir a array ordenado
-    return Object.entries(byMonth)
-      .sort(([a], [b]) => a.localeCompare(b)) // YYYY-MM ya se ordena alfabéticamente
-      .map(([key, value]) => ({
-        month: format(new Date(`${key}-01`), "MMM yyyy"),
-        ...value,
-      }))
+      // 2. Convertir a array ordenado
+      return Object.entries(byMonth)
+        .sort(([a], [b]) => a.localeCompare(b)) // YYYY-MM ya se ordena alfabéticamente
+        .map(([key, value]) => ({
+          month: format(new Date(`${key}-01`), "MMM yyyy"),
+          ...value,
+        }))
     }
 
     // For filtered views, create chart data based on the selected period
@@ -413,20 +430,66 @@ export default function Dashboard() {
     return (value / max) * 100
   }
 
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [viewOrderDialogOpen, setViewOrderDialogOpen] = useState(false)
+
+  // Handle view order
+  const handleViewOrder = (order: Order) => {
+    setSelectedOrder(order)
+    setViewOrderDialogOpen(true)
+  }
+
+  //Customers Section
+
+  const list = useCustomerList(filteredCustomers)
+  
+  const {
+    handleBanCustomer,
+    handleDeleteCustomer,
+    handleEditCustomer,
+    handleViewCustomer,
+    handleViewTickets,
+    viewDialogOpen,
+    editDialogOpen,
+    setEditDialogOpen,
+    ticketsDialogOpen,
+    setBanDialogOpen,
+    banDialogOpen,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    createDialogOpen,
+    setCreateDialogOpen,
+    selectedCustomer,
+    setTicketsDialogOpen,
+    setViewDialogOpen
+  } = useCustomerDialogs()
+
+  const {
+    handleCustomerCreated,
+    handleCustomerDeleted,
+    handleCustomerUpdated,
+    handleToggleStatus
+  } = useCustomerActions(
+    list.customers,
+    list.setCustomers,
+    list.applyFilters,
+    list.filters
+  )
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 
-      <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" className="px-2">
-          <Link href="/dashboard/sellers" className="flex items-center gap-1 text-sm">
-            <ArrowLeft className="w-4 h-4" />
-            Atras
-          </Link>
-        </Button>
-        
-      </div>
-      <h1 className="text-3xl font-bold tracking-tight">Vendedor: {user?.name}</h1>
+        <div className="flex items-center gap-4">
+          <Button asChild variant="ghost" className="px-2">
+            <Link href="/dashboard/sellers" className="flex items-center gap-1 text-sm">
+              <ArrowLeft className="w-4 h-4" />
+              Atras
+            </Link>
+          </Button>
+
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight">Vendedor: {user?.name}</h1>
         <div className="flex gap-2">
           {/* Date Filter Popover */}
           <Popover>
@@ -496,12 +559,6 @@ export default function Dashboard() {
               </div>
             </PopoverContent>
           </Popover>
-
-          {/*
-          <Button asChild variant="outline">
-            <Link href="/orders">Ver todas las ordenes</Link>
-          </Button>
-          */}
         </div>
       </div>
 
@@ -528,296 +585,359 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Seller information card */}
-        <div className="col-span-full max-w-3xl w-full m-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Perfil</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4 overflow-hidden">
-                <div className="h-16 w-16 rounded-full overflow-hidden border shrink-0">
-                  {user?.image ? (
-                    <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex items-center justify-center h-full w-full bg-muted text-muted-foreground text-xs">
-                      Sin imagen
+      <Tabs defaultValue="account" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsTrigger value="account">Resumen</TabsTrigger>
+          <TabsTrigger value="orders">Ordenes</TabsTrigger>
+          <TabsTrigger value="customers">Clientes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value='account'>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+            {/* Seller information card */}
+            <div className="col-span-full max-w-3xl w-full m-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Perfil</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4 overflow-hidden">
+                    <div className="h-16 w-16 rounded-full overflow-hidden border shrink-0">
+                      {user?.image ? (
+                        <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full w-full bg-muted text-muted-foreground text-xs">
+                          Sin imagen
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="flex flex-col flex-1 space-y-2 text-sm text-muted-foreground min-w-0">
-                  <div className="flex justify-between gap-4">
-                    <p className="flex items-center space-x-2 text-foreground font-medium truncate flex-1 min-w-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1118.879 6.196 9 9 0 015.12 17.804z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="truncate">{user?.name || "—"}</span>
-                    </p>
+                    <div className="flex flex-col flex-1 space-y-2 text-sm text-muted-foreground min-w-0">
+                      <div className="flex justify-between gap-4">
+                        <p className="flex items-center space-x-2 text-foreground font-medium truncate flex-1 min-w-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A9 9 0 1118.879 6.196 9 9 0 015.12 17.804z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span className="truncate">{user?.name || "—"}</span>
+                        </p>
 
-                    <p className="flex items-center space-x-2 truncate flex-1 min-w-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 0v8a2 2 0 002 2h14a2 2 0 002-2V8m-18 0l7.89-5.26a2 2 0 012.22 0L21 8" />
-                      </svg>
-                      <span className="truncate">{user?.email || "—"}</span>
-                    </p>
+                        <p className="flex items-center space-x-2 truncate flex-1 min-w-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 0v8a2 2 0 002 2h14a2 2 0 002-2V8m-18 0l7.89-5.26a2 2 0 012.22 0L21 8" />
+                          </svg>
+                          <span className="truncate">{user?.email || "—"}</span>
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between gap-4">
+                        <p className="flex items-center space-x-2 truncate flex-1 min-w-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h2l3.6 7.59-1.35 2.44a11.042 11.042 0 005.1 5.1l2.44-1.35L19 19v2a2 2 0 01-2 2 16 16 0 01-14-14 2 2 0 012-2z" />
+                          </svg>
+                          <span className="truncate">{user?.number || "—"}</span>
+                        </p>
+
+                        <p className="flex items-center space-x-2 text-xs truncate flex-1 min-w-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h10M7 12h10m-7 5h7" />
+                          </svg>
+                          <span className="truncate">ID: {user?.shortId || "—"}</span>
+                        </p>
+                      </div>
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            </div>
 
-                  <div className="flex justify-between gap-4">
-                    <p className="flex items-center space-x-2 truncate flex-1 min-w-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h2l3.6 7.59-1.35 2.44a11.042 11.042 0 005.1 5.1l2.44-1.35L19 19v2a2 2 0 01-2 2 16 16 0 01-14-14 2 2 0 012-2z" />
-                      </svg>
-                      <span className="truncate">{user?.number || "—"}</span>
-                    </p>
 
-                    <p className="flex items-center space-x-2 text-xs truncate flex-1 min-w-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7 7h10M7 12h10m-7 5h7" />
-                      </svg>
-                      <span className="truncate">ID: {user?.shortId || "—"}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            <div className="col-span-full flex flex-wrap justify-center gap-12">
+              {stats.map((stat, i) => (
+                <Card key={i} className="w-full sm:w-[250px]">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                    <stat.icon className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">{stat.description}</p>
+                      {selectedFilter.type !== "all-time" && (
+                        <p
+                          className={`text-xs flex items-center ${stat.changeType === "positive"
+                              ? "text-green-500"
+                              : stat.changeType === "negative"
+                                ? "text-red-500"
+                                : "text-gray-500"
+                            }`}
+                        >
+                          {stat.change}
+                          {stat.changeType === "positive" && <ArrowUpRight className="ml-1 h-3 w-3" />}
+                          {stat.changeType === "negative" && <ArrowDownRight className="ml-1 h-3 w-3" />}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
 
-        
-        <div className="col-span-full flex flex-wrap justify-center gap-12">
-          {stats.map((stat, i) => (
-            <Card key={i} className="w-full sm:w-[250px]">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 items-stretch">
+            <Card className="col-span-4">
+              <CardHeader>
+                <CardTitle>Rendimiento empresarial</CardTitle>
+                <CardDescription>
+                  {selectedFilter.type !== "all-time"
+                    ? `Desglose de rendimiento para ${selectedFilter.label}`
+                    : "Órdenes, ingresos y crecimiento de clientes a lo largo del tiempo"}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">{stat.description}</p>
-                  {selectedFilter.type !== "all-time" && (
-                    <p
-                      className={`text-xs flex items-center ${
-                        stat.changeType === "positive"
-                          ? "text-green-500"
-                          : stat.changeType === "negative"
-                            ? "text-red-500"
-                            : "text-gray-500"
-                      }`}
-                    >
-                      {stat.change}
-                      {stat.changeType === "positive" && <ArrowUpRight className="ml-1 h-3 w-3" />}
-                      {stat.changeType === "negative" && <ArrowDownRight className="ml-1 h-3 w-3" />}
-                    </p>
+                <div className="h-[300px] relative">
+                  {chartData.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                      <div className="text-center">
+                        <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p className="text-sm">No hay datos disponibles para el período seleccionado</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Chart Legend */}
+                      <div className="flex items-center justify-end gap-4 mb-4">
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                          <span className="text-xs">Ordenes</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
+                          <span className="text-xs">Ganancias</span>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
+                          <span className="text-xs">Clientes</span>
+                        </div>
+                      </div>
+
+                      {/* Chart Grid */}
+                      <div className="absolute inset-0 mt-8">
+                        {[0, 25, 50, 75, 100].map((tick) => (
+                          <div
+                            key={tick}
+                            className="absolute w-full border-t border-dashed border-border"
+                            style={{ bottom: `${tick}%`, height: "1px" }}
+                          >
+                            <span className="absolute -left-6 -top-2 text-xs text-muted-foreground">{100 - tick}%</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Chart Bars */}
+                      <div className="flex justify-between items-end h-[220px] mt-8 relative">
+                        {chartData.map((data, index) => (
+                          <div
+                            key={index}
+                            className="flex flex-col items-center gap-1"
+                            style={{ width: `${100 / chartData.length}%` }}
+                          >
+                            <div className="flex items-end h-[200px] gap-1">
+                              {/* Orders Bar */}
+                              <div
+                                className="w-4 bg-blue-500 rounded-t-sm"
+                                style={{ height: `${scaleValue(data.orders, maxOrders)}%` }}
+                                title={`Orders: ${data.orders}`}
+                              ></div>
+
+                              {/* Revenue Bar */}
+                              <div
+                                className="w-4 bg-green-500 rounded-t-sm"
+                                style={{ height: `${scaleValue(data.revenue / 100, maxRevenue / 100)}%` }}
+                                title={`Revenue: $${data.revenue}`}
+                              ></div>
+
+                              {/* Customers Bar */}
+                              <div
+                                className="w-4 bg-purple-500 rounded-t-sm"
+                                style={{ height: `${scaleValue(data.customers, maxCustomers)}%` }}
+                                title={`Customers: ${data.customers}`}
+                              ></div>
+                            </div>
+                            <span
+                              className="text-xs font-medium mt-2 text-center"
+                              style={{ fontSize: chartData.length > 6 ? "10px" : "12px" }}
+                            >
+                              {data.month}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 items-stretch">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Rendimiento empresarial</CardTitle>
-            <CardDescription>
-              {selectedFilter.type !== "all-time"
-                ? `Desglose de rendimiento para ${selectedFilter.label}`
-                : "Órdenes, ingresos y crecimiento de clientes a lo largo del tiempo"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] relative">
-              {chartData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <div className="text-center">
-                    <BarChart3 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">No hay datos disponibles para el período seleccionado</p>
+            { /*Recent Orders*/}
+            <div className="col-span-3 flex flex-col gap-4 h-full">
+              <Card className="flex-1 flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Ordenes Recientes</CardTitle>
+                    <CardDescription>
+                      {selectedFilter.type !== "all-time" ? `Orders from ${selectedFilter.label}` : "Última actividad de ordenes"}
+                    </CardDescription>
                   </div>
-                </div>
-              ) : (
-                <>
-                  {/* Chart Legend */}
-                  <div className="flex items-center justify-end gap-4 mb-4">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-                      <span className="text-xs">Ordenes</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                      <span className="text-xs">Ganancias</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-purple-500 mr-2"></div>
-                      <span className="text-xs">Clientes</span>
-                    </div>
-                  </div>
-
-                  {/* Chart Grid */}
-                  <div className="absolute inset-0 mt-8">
-                    {[0, 25, 50, 75, 100].map((tick) => (
-                      <div
-                        key={tick}
-                        className="absolute w-full border-t border-dashed border-border"
-                        style={{ bottom: `${tick}%`, height: "1px" }}
-                      >
-                        <span className="absolute -left-6 -top-2 text-xs text-muted-foreground">{100 - tick}%</span>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/orders">Ver todo</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentOrders.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {selectedFilter.type !== "all-time"
+                          ? `No se encontraron ordenes para ${selectedFilter.label}`
+                          : "No se encontraron ordenes recientes"}
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Chart Bars */}
-                  <div className="flex justify-between items-end h-[220px] mt-8 relative">
-                    {chartData.map((data, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col items-center gap-1"
-                        style={{ width: `${100 / chartData.length}%` }}
-                      >
-                        <div className="flex items-end h-[200px] gap-1">
-                          {/* Orders Bar */}
-                          <div
-                            className="w-4 bg-blue-500 rounded-t-sm"
-                            style={{ height: `${scaleValue(data.orders, maxOrders)}%` }}
-                            title={`Orders: ${data.orders}`}
-                          ></div>
-
-                          {/* Revenue Bar */}
-                          <div
-                            className="w-4 bg-green-500 rounded-t-sm"
-                            style={{ height: `${scaleValue(data.revenue / 100, maxRevenue / 100)}%` }}
-                            title={`Revenue: $${data.revenue}`}
-                          ></div>
-
-                          {/* Customers Bar */}
-                          <div
-                            className="w-4 bg-purple-500 rounded-t-sm"
-                            style={{ height: `${scaleValue(data.customers, maxCustomers)}%` }}
-                            title={`Customers: ${data.customers}`}
-                          ></div>
+                    ) : (
+                      recentOrders.map((order) => (
+                        <div key={order.id} className="flex items-center space-x-4">
+                          <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                            <CreditCard className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="space-y-1 flex-1 min-w-0">
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm font-medium truncate">{order.user?.name}</p>
+                              <p className="text-sm font-medium">{order.amount}</p>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <p className="text-xs text-muted-foreground">
+                                {order.shortId} • {order.tickets.length} boletos
+                              </p>
+                              <Badge variant={getStatusVariant(order.status)}>
+                                {
+                                  order.status === OrderStatus.COMPLETED
+                                    ? "Completado"
+                                    : order.status === OrderStatus.PENDING
+                                      ? "Pendiente"
+                                      : "Cancelado"
+                                }
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
-                        <span
-                          className="text-xs font-medium mt-2 text-center"
-                          style={{ fontSize: chartData.length > 6 ? "10px" : "12px" }}
-                        >
-                          {data.month}
-                        </span>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
-                </>
-              )}
+                </CardContent>
+              </Card>
+
+              { /*Recent Customers*/}
+              <Card className="flex-1 flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Clientes Recientes</CardTitle>
+                    <CardDescription>
+                      {selectedFilter.type !== "all-time" ? `Orders from ${selectedFilter.label}` : "Última actividad de ordenes"}
+                    </CardDescription>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/dashboard/orders">Ver todo</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {recentCustomers.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        {selectedFilter.type !== "all-time"
+                          ? `No se encontraron ordenes para ${selectedFilter.label}`
+                          : "No se encontraron ordenes recientes"}
+                      </div>
+                    ) : (
+                      recentCustomers.map((customer) => (
+                        <div key={customer.shortId} className="flex items-center space-x-4">
+                          <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                            <CreditCard className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="space-y-1 flex-1 min-w-0">
+                            <div className="flex justify-between items-center">
+                              <p className="text-sm font-medium truncate">{customer.name}</p>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <p className="text-xs text-muted-foreground">
+                                {customer.shortId} • {customer.tickets?.length} boletos
+                              </p>
+
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
+
+
+          </div>
+        </TabsContent>
+
+        <TabsContent value='orders'>
+          <CardContent>
+            <OrdersList orders={filteredOrders} onViewOrder={handleViewOrder} />
           </CardContent>
-        </Card>
+          <ViewOrderDialog open={viewOrderDialogOpen} onOpenChange={setViewOrderDialogOpen} order={selectedOrder} />
+        </TabsContent>
 
-        { /*Recent Orders*/ }
-        <div className="col-span-3 flex flex-col gap-4 h-full">
-          <Card className="flex-1 flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Ordenes Recientes</CardTitle>
-                <CardDescription>
-                  {selectedFilter.type !== "all-time" ? `Orders from ${selectedFilter.label}` : "Última actividad de ordenes"}
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/dashboard/orders">Ver todo</Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentOrders.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {selectedFilter.type !== "all-time"
-                      ? `No se encontraron ordenes para ${selectedFilter.label}`
-                      : "No se encontraron ordenes recientes"}
-                  </div>
-                ) : (
-                  recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center space-x-4">
-                      <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm font-medium truncate">{order.user?.name}</p>
-                          <p className="text-sm font-medium">{order.amount}</p>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-muted-foreground">
-                            {order.shortId} • {order.tickets.length} boletos
-                          </p>
-                          <Badge variant={getStatusVariant(order.status)}>
-                            {
-                            order.status === OrderStatus.COMPLETED
-                              ? "Completado"
-                              : order.status === OrderStatus.PENDING
-                              ? "Pendiente"
-                              : "Cancelado"
-                            }
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value='customers'>
+            <CustomersList
+              customers={filteredCustomers}
+              onViewCustomer={handleViewCustomer}
+              onEditCustomer={handleEditCustomer}
+              onViewTickets={handleViewTickets}
+              onBanCustomer={handleBanCustomer}
+              onDeleteCustomer={handleDeleteCustomer}
+            />
+            {/* View Customer Dialog */}
+            <ViewCustomerDialog open={viewDialogOpen} onOpenChange={setViewDialogOpen} customer={selectedCustomer} />
 
-          { /*Recent Customers*/ }
-          <Card className="flex-1 flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Clientes Recientes</CardTitle>
-                <CardDescription>
-                  {selectedFilter.type !== "all-time" ? `Orders from ${selectedFilter.label}` : "Última actividad de ordenes"}
-                </CardDescription>
-              </div>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/dashboard/orders">Ver todo</Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentCustomers.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {selectedFilter.type !== "all-time"
-                      ? `No se encontraron ordenes para ${selectedFilter.label}`
-                      : "No se encontraron ordenes recientes"}
-                  </div>
-                ) : (
-                  recentCustomers.map((customer) => (
-                    <div key={customer.shortId} className="flex items-center space-x-4">
-                      <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                        <CreditCard className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm font-medium truncate">{customer.name}</p>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <p className="text-xs text-muted-foreground">
-                            {customer.shortId} • {customer.tickets?.length} boletos
-                          </p>
+            {/* Edit Customer Dialog */}
+            <EditCustomerDialog
+              open={editDialogOpen}
+              onOpenChange={setEditDialogOpen}
+              customer={selectedCustomer}
+              onCustomerUpdated={handleCustomerUpdated}
+            />
 
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        
-      </div>
+            {/* View Tickets Dialog */}
+            <ViewTicketsDialog open={ticketsDialogOpen} onOpenChange={setTicketsDialogOpen} customer={selectedCustomer} />
+
+            {/* Ban Customer Dialog */}
+            <BanCustomerDialog
+              open={banDialogOpen}
+              onOpenChange={setBanDialogOpen}
+              customer={selectedCustomer}
+              onCustomerStatusChanged={handleCustomerUpdated}
+            />
+
+            {/* Delete Customer Dialog */}
+            <DeleteCustomerDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              customer={selectedCustomer}
+              onCustomerDeleted={handleCustomerDeleted}
+            />
+
+            {/* Create Customer Dialog */}
+            <CreateCustomerDialog
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+              onCustomerCreated={handleCustomerCreated}
+            />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
