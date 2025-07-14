@@ -9,5 +9,5 @@ export enum Model {
     PAYMENT_PROVIDERS = 'PaymentProviders',
     TASKS = 'Tasks',
     SUBTASKS = 'SubTasks',
-    CHATBOT_CONFIGURATION = 'ChatbotCOnfiguration'
+    CHATBOT_CONFIGURATION = 'ChatbotConfigurations'
 }
