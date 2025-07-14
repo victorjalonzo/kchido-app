@@ -2,6 +2,9 @@
 /dist
 /node_modules
 /build
+/migrations
+
+__generated__
 
 /prisma/migrations
 /uploads
