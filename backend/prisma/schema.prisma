@@ -154,9 +154,8 @@ model PaymentProviders {
 }
 
 model ChatbotConfigurations {
-  id String @id
+  id String  @id @default("config")
   isOn Boolean @default(true)
-  adminNumber String?
   whatsAppGroupId String?
 }
 
