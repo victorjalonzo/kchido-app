@@ -24,7 +24,6 @@ interface UserProps {
     email: string | null
     country: string | null
     state: string | null
-    password: string | null
     permissions: Permission | null
     status: UserStatus | null
     creatorId?: string | null
@@ -46,7 +45,6 @@ export class User implements UserProps {
     email: string | null
     country: string | null
     state: string | null
-    password: string | null
     permissions: Permission | null
     status: UserStatus | null
     creatorId?: string | null
@@ -67,7 +65,6 @@ export class User implements UserProps {
         this.email = props.email
         this.country = props.country
         this.state = props.state
-        this.password = props.password
         this.permissions = props.permissions
         this.status = props.status
         this.creatorId = props.creatorId
