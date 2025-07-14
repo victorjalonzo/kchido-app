@@ -10,6 +10,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { PaymentModule } from './Payment/infrastructure/payment.module';
 import { TaskModule } from './Task/infrastructure/task.module';
+import { ChatbotConfigurationModule } from './ChatbotConfiguration/infrastructure/chatbot-configuration.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { TaskModule } from './Task/infrastructure/task.module';
     OrderModule,
     TicketModule,
     PaymentModule,
-    TaskModule
+    TaskModule,
+    ChatbotConfigurationModule
   ],
   controllers: [AppController]
 })
