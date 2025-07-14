@@ -4,7 +4,7 @@ import { AuthController } from "./auth.controller";
 import { UserModule } from "src/User/infrastructure/user.module";
 import { PassportModule } from "@nestjs/passport";
 import { JwtModule } from "@nestjs/jwt";
-import { SharedConfig } from "src/Shared/shared.config";
+import { sharedConfig } from "src/Shared/shared.config";
 import { LoginDto } from "../application/login.dto";
 
 export const authTestingModule = Test.createTestingModule({
@@ -12,8 +12,8 @@ export const authTestingModule = Test.createTestingModule({
         UserModule,
         PassportModule,
         JwtModule.register({
-            secret: SharedConfig.jwtSecret,
-            signOptions: {expiresIn: SharedConfig.jwtExpiresIn}
+            secret: sharedConfig.jwtSecret,
+            signOptions: {expiresIn: sharedConfig.jwtExpiresIn}
         })
     ],
     providers: [AuthService],
@@ -32,8 +32,8 @@ describe('AuthModule', () => {
     })
 
     const dto: LoginDto = {
-        email: 'helloworld@gmail.com',
-        password: 'helloworld'
+        email: 'chatbot@kchido.com',
+        password: 'itFyRDItPxgpEaNr608StcPDIeY6bTiF'
     }
 
     describe('AuthController', () => {
