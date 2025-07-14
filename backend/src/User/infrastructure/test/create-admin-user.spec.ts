@@ -26,8 +26,8 @@ describe('Admin user creation', () => {
         const dto: CreateUserDTO = {
             name: 'Israel',
             role: UserType.ADMIN,
-            email: 'israel@gmail.com',
-            password: 'helloworld',
+            email: 'kchido@gmail.com',
+            password: 'kchido',
             permissions: createPermissionDTO
         }
     
