@@ -3,11 +3,15 @@ import { AuthAPI } from "../util/auth.api.js";
 import { menuFlow } from "./menu.flow.js";
 import { CustomerAPI } from "../util/customer.api.js";
 import { Asset } from "../util/asset.js";
+import { ChatbotConfigurationAPI } from "../util/chatbot-configuration.api.js";
 
 export const entryFlow = addKeyword(EVENTS.WELCOME)
 .addAction(async (ctx, {endFlow, state}) => {
     try {
-        const chatbotUser = await AuthAPI.getMe()
+        await AuthAPI.getMe()
+        const configuration = await ChatbotConfigurationAPI.get()
+        
+        if (!configuration.isOn) return endFlow()
 
         const customers = await CustomerAPI.getAll({
             role: 'customer',
