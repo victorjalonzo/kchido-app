@@ -6,4 +6,5 @@ export interface CreateTaskDto {
     description?: string
     orderId?: string
     raffleId?: string
+    customerId?: string
 }
