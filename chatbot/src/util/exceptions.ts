@@ -10,3 +10,9 @@ export class ConversactionAbort extends Error {
         super('La conversaccion ha sido terminado. Puedes volver a escribir en cualquier momento.')
     }
 }
+
+export class WhatsAppGroupIdNotFound extends Error {
+    constructor(){
+        super('Cannot find WhatsApp group ID')
+    }
+}
