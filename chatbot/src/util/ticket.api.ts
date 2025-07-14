@@ -5,8 +5,8 @@ import { Ticket } from "./ticket.type.js"
 const endpoint = '/tickets'
 
 export class TicketAPI {
-    static getAll = async (query?: string): Promise<Ticket[]> => {
-        return await fetchAPI(`${endpoint}?${query}`)
+    static getAll = async (query: Record<string, any>): Promise<Ticket[]> => {
+        return await fetchAPI(`${endpoint}`, {}, query)
     }
 
     static get = async (id: string): Promise<Ticket> => {
