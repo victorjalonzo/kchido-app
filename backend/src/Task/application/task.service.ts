@@ -5,14 +5,12 @@ import { CreateTaskDto } from "./create-task.dto";
 import { Task, TaskStatus, TaskType } from "../domain/task.entity";
 import { Model } from "src/Shared/shared.types";
 import { TaskMapper } from "../infrastructure/task.mapper";
-import { RaffleHasNoParticipantsException, TaskNotFoundException } from "../domain/task.exception";
+import { TaskNotFoundException } from "../domain/task.exception";
 import { UpdateTaskDto } from "./update-task.dto";
 import { TaskDispatcher } from "./task.dispatcher";
 import { CreateSubTaskDto } from "./create-subtask.dto";
 import { TicketService } from "src/Ticket/application/ticket.service";
-import { RaffleService } from "src/Raffle/application/raffle.service";
 import { SubTaskService } from "./subtask.service";
-import { Raffle } from "src/Raffle/domain/raffle.entity";
 import { OrderService } from "src/Order/application/order.service";
 import { SubTasksIncompleteException } from "../domain/subtask.exception";
 
@@ -33,9 +31,7 @@ export class TaskService {
     constructor (
         private readonly repository: SharedRepository<PrismaTask>,
         private readonly subTaskService: SubTaskService,
-        private readonly raffleService: RaffleService,
         private readonly ticketService: TicketService,
-        private readonly orderService: OrderService,
         private readonly dispatcher: TaskDispatcher
     ){}
 
@@ -59,48 +55,27 @@ export class TaskService {
     }
 
     _create = async (dto: CreateTaskDto): Promise<Task> => {
-        let raffle: Raffle | null = null
-
-        if (dto.type == TaskType.RAFFLE_ENDED) {
-            raffle = await this.raffleService.findById(<string>dto.raffleId, { participants: true })
-            if (!raffle.participants.length) throw new RaffleHasNoParticipantsException()
-        }
-
         const record = await this.repository.transaction(async (tx) => {
             if (!dto.status) dto.status = TaskStatus.PENDING
 
             return await tx[this.model].create({ data: dto })
             .then(async (record: PrismaTask) => {
-                const createSubTaskDtos: CreateSubTaskDto[] = []
 
-                switch(record.type) {
-                    case TaskType.PAYMENT_COMPLETED:
-                        const tickets = await this.ticketService.findByOrder(<string>record.orderId)
-                        const order = await this.orderService.findById(<string>record.orderId)
-                        const customerId = order.userId
+                if (record.type == TaskType.PAYMENT_COMPLETED) {
+                    const createSubTaskDtos: CreateSubTaskDto[] = []
+
+                    const tickets = await this.ticketService.findByOrder(<string>record.orderId)
     
-                        for (const ticket of tickets) {
-                            const createSubTaskDto: CreateSubTaskDto = {
-                                taskId: record.id,
-                                ticketId: ticket.id,
-                                customerId: customerId
-                            }
-                            createSubTaskDtos.push(createSubTaskDto)
+                    for (const ticket of tickets) {
+                        const createSubTaskDto: CreateSubTaskDto = {
+                            taskId: record.id,
+                            ticketId: ticket.id,
+                            customerId: dto.customerId
                         }
-                        break;
-    
-                    case TaskType.RAFFLE_ENDED:
-                        for (const participant of (raffle as Raffle).participants) {
-                            const createSubTaskDto: CreateSubTaskDto = {
-                                taskId: record.id, 
-                                customerId: participant.id,
-                            }
-                            createSubTaskDtos.push(createSubTaskDto)
-                        }
-                        break;
+                        createSubTaskDtos.push(createSubTaskDto)
+                    }
+                    await this.subTaskService.createMany(createSubTaskDtos, { transaction: tx})
                 }
-    
-                await this.subTaskService.createMany(createSubTaskDtos, { transaction: tx})
 
                 return record;
             })
