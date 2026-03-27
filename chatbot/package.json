@@ -12,8 +12,8 @@
   },
   "keywords": [],
   "dependencies": {
-    "@builderbot/bot": "1.2.5",
-    "@builderbot/provider-baileys": "1.2.5",
+    "@builderbot/bot": "latest",
+    "@builderbot/provider-baileys": "latest",
     "dotenv": "^16.5.0"
   },
   "devDependencies": {

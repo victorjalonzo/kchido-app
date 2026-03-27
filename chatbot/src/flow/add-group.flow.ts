@@ -6,8 +6,7 @@ export const addGroupFlow = addKeyword(EVENTS.ACTION)
 .addAction({}, async (ctx, { provider, flowDynamic }) => {
     try {
         const whatsAppGroupSock = new WhatsAppGroupSock(provider.vendor)
-        //const jid = `${ctx.from}@s.whatsapp.net`;
-        const jid = `18092163465@s.whatsapp.net`;
+        const jid = `${ctx.from}@s.whatsapp.net`;
         
         let { whatsAppGroupId: waGroupId } = await ChatbotConfigurationAPI.get()
 
