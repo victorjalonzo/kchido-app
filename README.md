@@ -60,27 +60,6 @@ The system is composed of four main modules:
 
 ---
 
-## 🌐 Landing Page
-
-### Main Header
-![Landing Header](./Imgs/Landing%20imgs/1-page-header-main.png)
-
-### Main Section
-![Landing Main](./Imgs/Landing%20imgs/2-page-main.png)
-
-### Raffle Details
-![Raffle Details](./Imgs/Landing%20imgs/3-raffle-details.png)
-
-### Raffle Footer
-![Raffle Footer](./Imgs/Landing%20imgs/4-raffle-footer-details.png)
-
-### Ticket Selection
-![Ticket 1](./Imgs/Landing%20imgs/5-ticket-1.png)
-
-![Ticket 2](./Imgs/Landing%20imgs/6-ticket-2.png)
-
----
-
 ## 🧑‍💼 CRM Dashboard
 
 ### Panel
@@ -124,6 +103,27 @@ The system is composed of four main modules:
 
 ### Account Settings
 ![CRM Settings](./Imgs/CRM%20imgs/14-configuracion-cuenta.png)
+
+---
+
+## 🌐 Landing Page
+
+### Main Header
+![Landing Header](./Imgs/Landing%20imgs/1-page-header-main.png)
+
+### Main Section
+![Landing Main](./Imgs/Landing%20imgs/2-page-main.png)
+
+### Raffle Details
+![Raffle Details](./Imgs/Landing%20imgs/3-raffle-details.png)
+
+### Raffle Footer
+![Raffle Footer](./Imgs/Landing%20imgs/4-raffle-footer-details.png)
+
+### Ticket Selection
+![Ticket 1](./Imgs/Landing%20imgs/5-ticket-1.png)
+
+![Ticket 2](./Imgs/Landing%20imgs/6-ticket-2.png)
 
 ---
 
