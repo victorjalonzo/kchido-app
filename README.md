@@ -126,9 +126,3 @@ The system is composed of four main modules:
 ![Ticket 2](./Imgs/Landing%20imgs/6-ticket-2.png)
 
 ---
-
-## 📦 Repository Structure
-/backend
-/frontend-landing
-/frontend-crm
-/chatbot
